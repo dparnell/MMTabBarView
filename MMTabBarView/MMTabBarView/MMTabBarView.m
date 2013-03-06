@@ -2526,11 +2526,9 @@ static NSMutableDictionary *registeredStyleClasses = nil;
     id <MMTabBarItem> dataSource = nil;
     
     if ([item identifier] &&
-        [[item identifier] conformsToProtocol:@protocol(MMTabBarItem)] &&
         [[item identifier] respondsToSelector:sel]) {
         dataSource = [item identifier];
-    } else if ([item conformsToProtocol:@protocol(MMTabBarItem)] &&
-               [item respondsToSelector:sel]) {
+    } else if ([item respondsToSelector:sel]) {
         dataSource = (id <MMTabBarItem>)item;
     }
     
