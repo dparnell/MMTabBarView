@@ -864,7 +864,7 @@
     
     NSRect result = NSMakeRect(NSMaxX(drawingRect)-indicatorSize.width,NSMidY(drawingRect)-ceil(indicatorSize.height/2),indicatorSize.width,indicatorSize.height);
     
-    return NSIntegralRect(result);
+    return result;
 }
 
 - (NSSize)_objectCounterSize {
