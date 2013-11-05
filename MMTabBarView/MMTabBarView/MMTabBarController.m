@@ -11,6 +11,7 @@
 #import "MMAttachedTabBarButton.h"
 #import "MMTabStyle.h"
 #import "NSString+MMTabBarViewExtensions.h"
+#import "MMTabBarView-Private.h"
 
 #define MAX_OVERFLOW_MENUITEM_TITLE_LENGTH      60
 
@@ -41,9 +42,8 @@
 
     _tabBarView = nil; // non retained!
     
-    [_overflowMenu release], _overflowMenu = nil;
+    _overflowMenu = nil;
     
-	[super dealloc];
 }
 
 /*!
@@ -72,7 +72,7 @@
     
         MMAttachedTabBarButton *draggedButton = [_tabBarView attachedTabBarButtonForDraggedItems];
         if (draggedButton) {
-            NSMutableArray *mutable = [[attachedButtons mutableCopy] autorelease];
+            NSMutableArray *mutable = [attachedButtons mutableCopy];
             [mutable insertObject:draggedButton atIndex:[_tabBarView destinationIndexForDraggedItem]];
             attachedButtons = mutable;
             
@@ -404,7 +404,7 @@ static NSInteger potentialMinimumForArray(NSArray *array, NSInteger minimum){
 
     NSUInteger buttonCount = [buttons count];
 
-	[_overflowMenu release], _overflowMenu = nil;
+	_overflowMenu = nil;
     
     __block NSRect buttonRect = [_tabBarView genericButtonRect];
 
