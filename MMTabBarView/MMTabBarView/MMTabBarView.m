@@ -21,6 +21,7 @@
 #import "MMLiveChatTabStyle.h"
 #import "MMCardTabStyle.h"
 #import "MMSafariTabStyle.h"
+#import "MMYosemiteTabStyle.h"
 #import "MMTabDragAssistant.h"
 #import "MMTabBarController.h"
 #import "MMAttachedTabBarButton.h"
@@ -347,6 +348,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
 + (void)registerDefaultTabStyleClasses {
 
+    [self registerTabStyleClass:[MMYosemiteTabStyle class]];
     [self registerTabStyleClass:[MMAquaTabStyle class]];
     [self registerTabStyleClass:[MMUnifiedTabStyle class]];
     [self registerTabStyleClass:[MMAdiumTabStyle class]];
@@ -1172,150 +1174,150 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 #pragma mark Hide/Show Tab Bar Control
 
 - (void)hideTabBar:(BOOL)hide animate:(BOOL)animate {
-
+    
     if ((_isHidden && hide) || (!_isHidden && !hide)) {
-		return;
-	}
+        return;
+    }
     
     _isHidden = hide;
-
+    
     CGFloat partnerOriginalSize, partnerOriginalOrigin, myOriginalSize, myOriginalOrigin, partnerTargetSize, partnerTargetOrigin;
-
-        // target values for partner
-	if ([self orientation] == MMTabBarHorizontalOrientation) {
-            // current (original) values
-		myOriginalSize = [self frame].size.height;
-        #pragma unused(myOriginalSize)
-		myOriginalOrigin = [self frame].origin.y;
-		if (_partnerView) {
-			partnerOriginalSize = [_partnerView frame].size.height;
-			partnerOriginalOrigin = [_partnerView frame].origin.y;
-		} else {
-			partnerOriginalSize = [[self window] frame].size.height;
-			partnerOriginalOrigin = [[self window] frame].origin.y;
-		}
-
-		if (_partnerView) {
-                // above or below me?
-			if ((myOriginalOrigin - kMMTabBarViewHeight) > partnerOriginalOrigin) {
-                    // partner is below me
-				if (_isHidden) {
-                        // I'm shrinking
-					partnerTargetOrigin = partnerOriginalOrigin;
-					partnerTargetSize = partnerOriginalSize + kMMTabBarViewHeight;
-				} else {
-                        // I'm growing
-					partnerTargetOrigin = partnerOriginalOrigin;
-					partnerTargetSize = partnerOriginalSize - kMMTabBarViewHeight;
-				}
-			} else {
-                    // partner is above me
-				if (_isHidden) {
-                        // I'm shrinking
-					partnerTargetOrigin = partnerOriginalOrigin - kMMTabBarViewHeight;
-					partnerTargetSize = partnerOriginalSize + kMMTabBarViewHeight;
-				} else {
-                        // I'm growing
-					partnerTargetOrigin = partnerOriginalOrigin + kMMTabBarViewHeight;
-					partnerTargetSize = partnerOriginalSize - kMMTabBarViewHeight;
-				}
-			}
-		} else {
-                // for window movement
-			if (_isHidden) {
+    
+    // target values for partner
+    if ([self orientation] == MMTabBarHorizontalOrientation) {
+        // current (original) values
+        myOriginalSize = [self frame].size.height;
+#pragma unused(myOriginalSize)
+        myOriginalOrigin = [self frame].origin.y;
+        if (_partnerView) {
+            partnerOriginalSize = [_partnerView frame].size.height;
+            partnerOriginalOrigin = [_partnerView frame].origin.y;
+        } else {
+            partnerOriginalSize = [[self window] frame].size.height;
+            partnerOriginalOrigin = [[self window] frame].origin.y;
+        }
+        
+        if (_partnerView) {
+            // above or below me?
+            if ((myOriginalOrigin - [self heightOfTabBarButtons]) > partnerOriginalOrigin) {
+                // partner is below me
+                if (_isHidden) {
                     // I'm shrinking
-				partnerTargetOrigin = partnerOriginalOrigin + kMMTabBarViewHeight;
-				partnerTargetSize = partnerOriginalSize - kMMTabBarViewHeight;
-			} else {
+                    partnerTargetOrigin = partnerOriginalOrigin;
+                    partnerTargetSize = partnerOriginalSize + [self heightOfTabBarButtons];
+                } else {
                     // I'm growing
-				partnerTargetOrigin = partnerOriginalOrigin - kMMTabBarViewHeight;
-				partnerTargetSize = partnerOriginalSize + kMMTabBarViewHeight;
-			}
-		}
-	} else {   // vertical 
-            // current (original) values
-		myOriginalSize = [self frame].size.width;
-		myOriginalOrigin = [self frame].origin.x;
-		if (_partnerView) {
-			partnerOriginalSize = [_partnerView frame].size.width;
-			partnerOriginalOrigin = [_partnerView frame].origin.x;
-		} else {
-			partnerOriginalSize = [[self window] frame].size.width;
-			partnerOriginalOrigin = [[self window] frame].origin.x;
-		}
-
-		if (_partnerView) {
-                //to the left or right?
-			if (myOriginalOrigin < partnerOriginalOrigin + partnerOriginalSize) {
-                    // partner is to the left
-				if (_isHidden) {
-                        // I'm shrinking
-					partnerTargetOrigin = partnerOriginalOrigin - myOriginalSize;
-					partnerTargetSize = partnerOriginalSize + myOriginalSize;
-					_tabBarWidth = myOriginalSize;
-				} else {
-                        // I'm growing
-					partnerTargetOrigin = partnerOriginalOrigin + _tabBarWidth;
-					partnerTargetSize = partnerOriginalSize - _tabBarWidth;
-				}
-			} else {
-                    // partner is to the right
-				if (_isHidden) {
-                        // I'm shrinking
-					partnerTargetOrigin = partnerOriginalOrigin;
-					partnerTargetSize = partnerOriginalSize + myOriginalSize;
-					_tabBarWidth = myOriginalSize;
-				} else {
-                        // I'm growing
-					partnerTargetOrigin = partnerOriginalOrigin;
-					partnerTargetSize = partnerOriginalSize - _tabBarWidth;
-				}
-			}
-		} else {
-                // for window movement
-			if (_isHidden) {
+                    partnerTargetOrigin = partnerOriginalOrigin;
+                    partnerTargetSize = partnerOriginalSize - [self heightOfTabBarButtons];
+                }
+            } else {
+                // partner is above me
+                if (_isHidden) {
                     // I'm shrinking
-				partnerTargetOrigin = partnerOriginalOrigin + myOriginalSize;
-				partnerTargetSize = partnerOriginalSize - myOriginalSize;
-				_tabBarWidth = myOriginalSize;
-			} else {
+                    partnerTargetOrigin = partnerOriginalOrigin - [self heightOfTabBarButtons];
+                    partnerTargetSize = partnerOriginalSize + [self heightOfTabBarButtons];
+                } else {
                     // I'm growing
-				partnerTargetOrigin = partnerOriginalOrigin - _tabBarWidth;
-				partnerTargetSize = partnerOriginalSize + _tabBarWidth;
-			}
-		}
-	}
-
-	if (hide)
+                    partnerTargetOrigin = partnerOriginalOrigin + [self heightOfTabBarButtons];
+                    partnerTargetSize = partnerOriginalSize - [self heightOfTabBarButtons];
+                }
+            }
+        } else {
+            // for window movement
+            if (_isHidden) {
+                // I'm shrinking
+                partnerTargetOrigin = partnerOriginalOrigin + [self heightOfTabBarButtons];
+                partnerTargetSize = partnerOriginalSize - [self heightOfTabBarButtons];
+            } else {
+                // I'm growing
+                partnerTargetOrigin = partnerOriginalOrigin - [self heightOfTabBarButtons];
+                partnerTargetSize = partnerOriginalSize + [self heightOfTabBarButtons];
+            }
+        }
+    } else {   // vertical
+        // current (original) values
+        myOriginalSize = [self frame].size.width;
+        myOriginalOrigin = [self frame].origin.x;
+        if (_partnerView) {
+            partnerOriginalSize = [_partnerView frame].size.width;
+            partnerOriginalOrigin = [_partnerView frame].origin.x;
+        } else {
+            partnerOriginalSize = [[self window] frame].size.width;
+            partnerOriginalOrigin = [[self window] frame].origin.x;
+        }
+        
+        if (_partnerView) {
+            //to the left or right?
+            if (myOriginalOrigin < partnerOriginalOrigin + partnerOriginalSize) {
+                // partner is to the left
+                if (_isHidden) {
+                    // I'm shrinking
+                    partnerTargetOrigin = partnerOriginalOrigin - myOriginalSize;
+                    partnerTargetSize = partnerOriginalSize + myOriginalSize;
+                    _tabBarWidth = myOriginalSize;
+                } else {
+                    // I'm growing
+                    partnerTargetOrigin = partnerOriginalOrigin + _tabBarWidth;
+                    partnerTargetSize = partnerOriginalSize - _tabBarWidth;
+                }
+            } else {
+                // partner is to the right
+                if (_isHidden) {
+                    // I'm shrinking
+                    partnerTargetOrigin = partnerOriginalOrigin;
+                    partnerTargetSize = partnerOriginalSize + myOriginalSize;
+                    _tabBarWidth = myOriginalSize;
+                } else {
+                    // I'm growing
+                    partnerTargetOrigin = partnerOriginalOrigin;
+                    partnerTargetSize = partnerOriginalSize - _tabBarWidth;
+                }
+            }
+        } else {
+            // for window movement
+            if (_isHidden) {
+                // I'm shrinking
+                partnerTargetOrigin = partnerOriginalOrigin + myOriginalSize;
+                partnerTargetSize = partnerOriginalSize - myOriginalSize;
+                _tabBarWidth = myOriginalSize;
+            } else {
+                // I'm growing
+                partnerTargetOrigin = partnerOriginalOrigin - _tabBarWidth;
+                partnerTargetSize = partnerOriginalSize + _tabBarWidth;
+            }
+        }
+    }
+    
+    if (hide)
         [self setHidden:YES];
+    
+    if (_partnerView) {
+        // resize self and view
+        NSRect resizeRect;
+        if ([self orientation] == MMTabBarHorizontalOrientation) {
+            resizeRect = NSMakeRect([_partnerView frame].origin.x, partnerTargetOrigin, [_partnerView frame].size.width, partnerTargetSize);
+        } else {
+            resizeRect = NSMakeRect(partnerTargetOrigin, [_partnerView frame].origin.y, partnerTargetSize, [_partnerView frame].size.height);
+        }
         
-	if (_partnerView) {
-            // resize self and view
-		NSRect resizeRect;
-		if ([self orientation] == MMTabBarHorizontalOrientation) {
-			resizeRect = NSMakeRect([_partnerView frame].origin.x, partnerTargetOrigin, [_partnerView frame].size.width, partnerTargetSize);
-		} else {
-			resizeRect = NSMakeRect(partnerTargetOrigin, [_partnerView frame].origin.y, partnerTargetSize, [_partnerView frame].size.height);
-		}
-
         if (animate) {
-        
-                // stop running animation
+            
+            // stop running animation
             if (_hideShowTabBarAnimation) {
                 [_hideShowTabBarAnimation stopAnimation];
                 [_hideShowTabBarAnimation release], _hideShowTabBarAnimation = nil;
             }
-                
-                // start animated update of partner view
+            
+            // start animated update of partner view
             NSDictionary *partnerAnimDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                _partnerView, NSViewAnimationTargetKey,
-                [NSValue valueWithRect:[_partnerView frame]], NSViewAnimationStartFrameKey,
-                [NSValue valueWithRect:resizeRect], NSViewAnimationEndFrameKey,
-                [NSNumber numberWithBool:hide], @"hide",
-                nil];
-
+                                             _partnerView, NSViewAnimationTargetKey,
+                                             [NSValue valueWithRect:[_partnerView frame]], NSViewAnimationStartFrameKey,
+                                             [NSValue valueWithRect:resizeRect], NSViewAnimationEndFrameKey,
+                                             [NSNumber numberWithBool:hide], @"hide",
+                                             nil];
+            
             NSArray *animDictArray = [NSArray arrayWithObjects:partnerAnimDict,nil];
-                
+            
             _hideShowTabBarAnimation = [[NSViewAnimation alloc] initWithViewAnimations:animDictArray    ];
             [_hideShowTabBarAnimation setDuration:0.1];
             [_hideShowTabBarAnimation setDelegate:self];
@@ -1323,31 +1325,31 @@ static NSMutableDictionary *registeredStyleClasses = nil;
         } else {
             [_partnerView setFrame:resizeRect];
         }
-	} else {
-            // resize self and window
-		NSRect resizeRect;
-		if ([self orientation] == MMTabBarHorizontalOrientation) {
-			resizeRect = NSMakeRect([[self window] frame].origin.x, partnerTargetOrigin, [[self window] frame].size.width, partnerTargetSize);
-		} else {
-			resizeRect = NSMakeRect(partnerTargetOrigin, [[self window] frame].origin.y, partnerTargetSize, [[self window] frame].size.height);
-		}
-		[[self window] setFrame:resizeRect display:YES];
-	}
+    } else {
+        // resize self and window
+        NSRect resizeRect;
+        if ([self orientation] == MMTabBarHorizontalOrientation) {
+            resizeRect = NSMakeRect([[self window] frame].origin.x, partnerTargetOrigin, [[self window] frame].size.width, partnerTargetSize);
+        } else {
+            resizeRect = NSMakeRect(partnerTargetOrigin, [[self window] frame].origin.y, partnerTargetSize, [[self window] frame].size.height);
+        }
+        [[self window] setFrame:resizeRect display:YES];
+    }
     
     
     if (!animate) {
         if (!_isHidden)
             [self setHidden:NO];
         
-            //send the delegate messages
-		if (_isHidden) {
-			if ([_delegate respondsToSelector:@selector(tabView:tabBarViewDidHide:)]) {
-				[_delegate tabView:[self tabView] tabBarViewDidHide:self];
-			}
-		} else {
-			if ([_delegate respondsToSelector:@selector(tabView:tabBarViewDidUnhide:)]) {
-				[_delegate tabView:[self tabView] tabBarViewDidUnhide:self];
-			}
+        //send the delegate messages
+        if (_isHidden) {
+            if ([_delegate respondsToSelector:@selector(tabView:tabBarViewDidHide:)]) {
+                [_delegate tabView:[self tabView] tabBarViewDidHide:self];
+            }
+        } else {
+            if ([_delegate respondsToSelector:@selector(tabView:tabBarViewDidUnhide:)]) {
+                [_delegate tabView:[self tabView] tabBarViewDidUnhide:self];
+            }
         }
     }   
 }
