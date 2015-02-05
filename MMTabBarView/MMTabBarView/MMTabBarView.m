@@ -324,6 +324,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
         // Don't gray out the tab bar if we're displaying a sheet.
         windowActive = YES;
     }
+
     return windowActive;
 }
 

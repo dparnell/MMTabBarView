@@ -224,15 +224,15 @@
             shouldDisplayRightDivider = NO;
     }
     
-    if (shouldDisplayRightDivider) {
-        [lineColor set];
-        [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+.5, NSMinY(aRect)) toPoint:NSMakePoint(NSMaxX(aRect)+0.5, NSMaxY(aRect))];
-        
-        [[[NSColor whiteColor] colorWithAlphaComponent:0.5] set];
-        [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMinY(aRect)+1.0)
-                                  toPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMaxY(aRect)-1.0)];
-        
-    }
+//    if (shouldDisplayRightDivider) {
+//        [lineColor set];
+//        [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+.5, NSMinY(aRect)) toPoint:NSMakePoint(NSMaxX(aRect)+0.5, NSMaxY(aRect))];
+//        
+//        [[[NSColor whiteColor] colorWithAlphaComponent:0.5] set];
+//        [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMinY(aRect)+1.0)
+//                                  toPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMaxY(aRect)-1.0)];
+//        
+//    }
     
     if ([button shouldDisplayLeftDivider]) {
         [lineColor set];
@@ -423,7 +423,8 @@
     if ([button state] == NSOnState) {
         [[NSColor colorWithCalibratedWhite:0.0 alpha:0.2] set];
         NSRectFillUsingOperation(aRect, NSCompositeSourceAtop);            
-    } else if ([button mouseHovered]) {
+    } else
+        if ([button mouseHovered]) {
         [[NSColor colorWithCalibratedWhite:0.0 alpha:0.1] set];
         NSRectFillUsingOperation(aRect, NSCompositeSourceAtop);
     }
