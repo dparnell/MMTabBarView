@@ -186,13 +186,12 @@
 - (void)drawBezelOfTabBarView:(MMTabBarView *)tabBarView inRect:(NSRect)rect {
     //Draw for our whole bounds; it'll be automatically clipped to fit the appropriate drawing area
     rect = [tabBarView bounds];
-    tabBarView.resizeTabsToFitTotalWidth= YES;
+//    tabBarView.resizeTabsToFitTotalWidth= YES;
     
     NSRect gradientRect = rect;
     
-    if (![tabBarView isWindowActive]) {
-        [[NSColor windowBackgroundColor] set];
-    } else {
+    if ([tabBarView isWindowActive])
+    {
         NSColor *startColor = [NSColor colorWithDeviceWhite:0.8 alpha:1.000];
         NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:startColor endingColor:startColor];
         [gradient drawInRect:gradientRect angle:90.0];
@@ -211,8 +210,8 @@
     
     NSWindow *window = [tabBarView window];
     NSToolbar *toolbar = [window toolbar];
-    if (toolbar && [toolbar isVisible])
-        return;
+//    if (toolbar && [toolbar isVisible])
+//        return;
     
     NSRect aRect = [button frame];
     NSColor *lineColor = [NSColor colorWithCalibratedWhite:0.576 alpha:1.0];
@@ -224,15 +223,15 @@
             shouldDisplayRightDivider = NO;
     }
     
-//    if (shouldDisplayRightDivider) {
-//        [lineColor set];
-//        [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+.5, NSMinY(aRect)) toPoint:NSMakePoint(NSMaxX(aRect)+0.5, NSMaxY(aRect))];
-//        
-//        [[[NSColor whiteColor] colorWithAlphaComponent:0.5] set];
-//        [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMinY(aRect)+1.0)
-//                                  toPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMaxY(aRect)-1.0)];
-//        
-//    }
+    if (shouldDisplayRightDivider) {
+        [lineColor set];
+        [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+.5, NSMinY(aRect)) toPoint:NSMakePoint(NSMaxX(aRect)+0.5, NSMaxY(aRect))];
+        
+        [[[NSColor whiteColor] colorWithAlphaComponent:0.5] set];
+        [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMinY(aRect)+1.0)
+                                  toPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMaxY(aRect)-1.0)];
+        
+    }
     
     if ([button shouldDisplayLeftDivider]) {
         [lineColor set];
@@ -254,8 +253,8 @@
     if ([button isSliding])
         overflowMode = NO;
     
-    if (toolbar && [toolbar isVisible]) {
-        
+//    if (toolbar && [toolbar isVisible]) {
+//        
         NSRect aRect = NSZeroRect;
         if (overflowMode) {
             aRect = NSMakeRect(frame.origin.x, frame.origin.y, frame.size.width +1, frame.size.height);
@@ -272,21 +271,21 @@
             [self _drawCardBezelInRect:aRect withCapMask:MMBezierShapeAllCaps|MMBezierShapeFlippedVertically usingStatesOfAttachedButton:button ofTabBarView:tabBarView];
         }
         
-    } else {
-        
-        NSRect aRect = NSZeroRect;
-        if (overflowMode) {
-            aRect = NSMakeRect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-        } else {
-            aRect = NSMakeRect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-        }
-        
-        if (overflowMode) {
-            [self _drawBoxBezelInRect:aRect withCapMask:MMBezierShapeLeftCap usingStatesOfAttachedButton:button ofTabBarView:tabBarView];
-        } else {
-            [self _drawBoxBezelInRect:aRect withCapMask:MMBezierShapeAllCaps usingStatesOfAttachedButton:button ofTabBarView:tabBarView];
-        }
-    }
+//   } else {
+//        
+//        NSRect aRect = NSZeroRect;
+//        if (overflowMode) {
+//            aRect = NSMakeRect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+//        } else {
+//            aRect = NSMakeRect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+//        }
+//        
+//        if (overflowMode) {
+//            [self _drawBoxBezelInRect:aRect withCapMask:MMBezierShapeLeftCap usingStatesOfAttachedButton:button ofTabBarView:tabBarView];
+//        } else {
+//            [self _drawBoxBezelInRect:aRect withCapMask:MMBezierShapeAllCaps usingStatesOfAttachedButton:button ofTabBarView:tabBarView];
+//        }
+//    }
 }
 
 -(void)drawBezelOfOverflowButton:(MMOverflowPopUpButton *)overflowButton ofTabBarView:(MMTabBarView *)tabBarView inRect:(NSRect)rect {
@@ -300,8 +299,8 @@
     
     NSRect frame = [overflowButton frame];
     
-    if (toolbar && [toolbar isVisible]) {
-        
+//    if (toolbar && [toolbar isVisible]) {
+//        
         NSRect aRect = NSMakeRect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
         aRect.size.width += 5.0;
         aRect.origin.y += 1;
@@ -309,22 +308,22 @@
         
         [self _drawCardBezelInRect:aRect withCapMask:MMBezierShapeRightCap|MMBezierShapeFlippedVertically usingStatesOfAttachedButton:lastAttachedButton ofTabBarView:tabBarView];
         
-    } else {
-        NSRect aRect = NSMakeRect(frame.origin.x, frame.origin.y+0.5, frame.size.width-0.5f, frame.size.height-1.0);
-        aRect.size.width += 5.0;
-        
-        [self _drawBoxBezelInRect:aRect withCapMask:MMBezierShapeRightCap|MMBezierShapeFlippedVertically usingStatesOfAttachedButton:lastAttachedButton ofTabBarView:tabBarView];
-        
-        if ([tabBarView showAddTabButton]) {
-            
-            NSColor *lineColor = [NSColor colorWithCalibratedWhite:0.576 alpha:1.0];
-            [lineColor set];
-            [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+.5, NSMinY(aRect)) toPoint:NSMakePoint(NSMaxX(aRect)+0.5, NSMaxY(aRect))];
-            
-            [[[NSColor whiteColor] colorWithAlphaComponent:0.5] set];
-            [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMinY(aRect)+1.0) toPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMaxY(aRect)-1.0)];
-        }
-    }
+//    } else {
+//        NSRect aRect = NSMakeRect(frame.origin.x, frame.origin.y+0.5, frame.size.width-0.5f, frame.size.height-1.0);
+//        aRect.size.width += 5.0;
+//        
+//        [self _drawBoxBezelInRect:aRect withCapMask:MMBezierShapeRightCap|MMBezierShapeFlippedVertically usingStatesOfAttachedButton:lastAttachedButton ofTabBarView:tabBarView];
+//        
+//        if ([tabBarView showAddTabButton]) {
+//            
+//            NSColor *lineColor = [NSColor colorWithCalibratedWhite:0.576 alpha:1.0];
+//            [lineColor set];
+//            [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+.5, NSMinY(aRect)) toPoint:NSMakePoint(NSMaxX(aRect)+0.5, NSMaxY(aRect))];
+//            
+//            [[[NSColor whiteColor] colorWithAlphaComponent:0.5] set];
+//            [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMinY(aRect)+1.0) toPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMaxY(aRect)-1.0)];
+//        }
+//    }
 }
 
 #pragma mark -
@@ -396,7 +395,7 @@
             [gradient release];
         }
     }
-    
+
     //NSBezierPath *strokePath = [NSBezierPath bezierPathWithCardInRect:aRect radius:radius capMask:capMask];
     //[strokePath stroke];
     
