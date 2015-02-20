@@ -21,6 +21,7 @@
 #import "MMLiveChatTabStyle.h"
 #import "MMCardTabStyle.h"
 #import "MMSafariTabStyle.h"
+#import "MMYosemiteTabStyle.h"
 #import "MMTabDragAssistant.h"
 #import "MMTabBarController.h"
 #import "MMAttachedTabBarButton.h"
@@ -28,11 +29,67 @@
 #import "MMSlideButtonsAnimation.h"
 #import "NSView+MMTabBarViewExtensions.h"
 #import "MMTabBarItem.h"
-#import "MMTabBarView-Private.h"
 
 #define DIVIDER_WIDTH 3
 
+@interface MMTabBarView (/*Private*/)
 
+@property (assign) BOOL isReorderingTabViewItems;
+
+- (void)_commonInit;
+
+// providing defaults
+- (BOOL)_supportsOrientation:(MMTabBarOrientation)orientation;
+- (CGFloat)_heightOfTabBarButtons;
+- (CGFloat)_rightMargin;
+- (CGFloat)_leftMargin;
+- (CGFloat)_topMargin;
+- (CGFloat)_bottomMargin;
+- (NSSize)_addTabButtonSize;
+- (NSRect)_addTabButtonRect;
+- (NSSize)_overflowButtonSize;
+- (NSRect)_overflowButtonRect;
+- (void)_drawTabBarViewInRect:(NSRect)aRect;
+- (void)_drawBezelInRect:(NSRect)rect;
+- (void)_drawButtonBezelsInRect:(NSRect)rect;
+- (void)_drawBezelOfButton:(MMAttachedTabBarButton *)button atIndex:(NSUInteger)index inButtons:(NSArray *)buttons indexOfSelectedButton:(NSUInteger)selIndex inRect:(NSRect)rect;
+- (void)_drawBezelOfOverflowButton:(MMOverflowPopUpButton *)overflowButton inRect:(NSRect)rect;
+- (void)_drawInteriorInRect:(NSRect)rect;
+
+// determine positions
+- (void)_positionOverflowMenu;
+- (void)_positionAddTabButton;
+- (void)_checkWindowFrame;
+
+// convenience
+- (void)_bindPropertiesOfAttachedButton:(MMAttachedTabBarButton *)aButton andTabViewItem:(NSTabViewItem *)item;
+- (void)_unbindPropertiesOfAttachedButton:(MMAttachedTabBarButton *)aButton;
+
+// synchronize selection
+- (void)_synchronizeSelection;
+
+// resizing
+@property (assign) BOOL isResizing;
+- (NSCursor *)_resizingMouseCursor;
+- (void)_beginResizingWithMouseDownEvent:(NSEvent *)theEvent;
+
+// misc
+- (BOOL)_shouldDisplayTabBar;
+
+// private actions
+- (void)_overflowMenuAction:(id)sender;
+- (void)_didClickTabButton:(id)sender;
+- (void)_didClickCloseButton:(id)sender;
+
+// notification handlers
+- (void)frameDidChange:(NSNotification *)notification;
+- (void)windowDidMove:(NSNotification *)aNotification;
+
+// update buttons
+- (void)_updateAddTabButton;
+- (void)_updateOverflowPopUpButton;
+
+@end
 
 @implementation MMTabBarView
 
@@ -42,13 +99,14 @@
 @synthesize destinationIndexForDraggedItem = _destinationIndexForDraggedItem;
 @synthesize isResizing = _isResizing;
 @dynamic needsUpdate;
+@synthesize resizeTabsToFitTotalWidth = _resizeTabsToFitTotalWidth;
 
 static NSMutableDictionary *registeredStyleClasses = nil;
 
 +(void)initialize {
 
     if (registeredStyleClasses == nil) {
-        registeredStyleClasses = [NSMutableDictionary dictionaryWithCapacity:10];
+        registeredStyleClasses = [[NSMutableDictionary dictionaryWithCapacity:10] retain];
         
         [self registerDefaultTabStyleClasses];
     }
@@ -59,6 +117,9 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 	if (self) {
 		// Initialization
 		[self _commonInit];
+
+		_style = [[MMMetalTabStyle alloc] init];
+
 		[self registerForDraggedTypes:[NSArray arrayWithObjects:AttachedTabBarButtonUTI, nil]];
 
 		// resize
@@ -76,16 +137,16 @@ static NSMutableDictionary *registeredStyleClasses = nil;
     // assure that pending animation will stop
     if (_slideButtonsAnimation) {
         [_slideButtonsAnimation stopAnimation];
-        _slideButtonsAnimation = nil;
+        [_slideButtonsAnimation release], _slideButtonsAnimation = nil;
     }
     if (_hideShowTabBarAnimation) {
         [_hideShowTabBarAnimation stopAnimation];
-        _hideShowTabBarAnimation = nil;
+        [_hideShowTabBarAnimation release], _hideShowTabBarAnimation = nil;
     }
 
 	//Also unwind the spring, if it's wound.
 	[_springTimer invalidate];
-	 _springTimer = nil;
+	[_springTimer release]; _springTimer = nil;
 
 	//unbind all the items to prevent crashing
 	//not sure if this is necessary or not
@@ -95,15 +156,16 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 		[self removeAttachedButton:aButton];
 	}
 
-	_overflowPopUpButton = nil;
-	_controller = nil;
-	_tabView = nil;
-	_addTabButton = nil;
-	_partnerView = nil;
-	_style = nil;
+	[_overflowPopUpButton release], _overflowPopUpButton = nil;
+	[_controller release], _controller = nil;
+	[_tabView release], _tabView = nil;
+	[_addTabButton release], _addTabButton = nil;
+	[_partnerView release], _partnerView = nil;
+	[_style release], _style = nil;
 
 	[self unregisterDraggedTypes];
 
+	[super dealloc];
 }
 
 - (void)viewWillMoveToWindow:(NSWindow *)aWindow {
@@ -111,12 +173,12 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
 	if (_hideShowTabBarAnimation) {
 		[_hideShowTabBarAnimation stopAnimation];
-		 _hideShowTabBarAnimation = nil;
+		[_hideShowTabBarAnimation release]; _hideShowTabBarAnimation = nil;
 	}
     
     if (_slideButtonsAnimation) {
 		[_slideButtonsAnimation stopAnimation];
-		 _slideButtonsAnimation = nil;    
+		[_slideButtonsAnimation release]; _slideButtonsAnimation = nil;    
     }
     
     if ([self window]) {
@@ -251,11 +313,18 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 - (BOOL)isWindowActive {
     NSWindow *window = [self window];
     BOOL windowActive = NO;
-    if ([window isKeyWindow])
+    
+    if ([window isKeyWindow]) {
         windowActive = YES;
-    else if ([window isKindOfClass:[NSPanel class]] && [NSApp isActive])
+    }
+    else if ([window isKindOfClass:[NSPanel class]] && [NSApp isActive]) {
         windowActive = YES;
-        
+    }
+    else if ([window isMainWindow]) {
+        // Don't gray out the tab bar if we're displaying a sheet.
+        windowActive = YES;
+    }
+
     return windowActive;
 }
 
@@ -280,6 +349,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
 + (void)registerDefaultTabStyleClasses {
 
+    [self registerTabStyleClass:[MMYosemiteTabStyle class]];
     [self registerTabStyleClass:[MMAquaTabStyle class]];
     [self registerTabStyleClass:[MMUnifiedTabStyle class]];
     [self registerTabStyleClass:[MMAdiumTabStyle class]];
@@ -349,8 +419,10 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
     [self setIsReorderingTabViewItems:YES];
     
+    [anItem retain];
     [_tabView removeTabViewItem:anItem];
     [_tabView insertTabViewItem:anItem atIndex:index];    
+    [anItem release];
     
         // assure that item gets re-selected
     [_tabView selectTabViewItem:anItem];
@@ -498,6 +570,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
         // add button as subview
     [self addSubview:button];
+	[button release];
     
         // add tab item at specified index
     if ([[_tabView tabViewItems] indexOfObjectIdenticalTo:item] == NSNotFound) {
@@ -779,7 +852,8 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
 - (void)setStyle:(id <MMTabStyle>)newStyle {
 	if (_style != newStyle) {
-		_style = newStyle;
+		[_style autorelease];
+		_style = [newStyle retain];
 
             // assure that orientation is valid
         if (![self supportsOrientation:MMTabBarHorizontalOrientation] && _orientation == MMTabBarHorizontalOrientation)
@@ -808,6 +882,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
     id <MMTabStyle> newStyle = [[(Class)styleClass alloc] init];
 	[self setStyle:newStyle];
+	[newStyle release];
 }
 
 - (MMTabBarOrientation)orientation {
@@ -1020,10 +1095,10 @@ static NSMutableDictionary *registeredStyleClasses = nil;
             return;
             
         if (_tabView) {
-            _tabView = nil;
+            [_tabView release],_tabView = nil;
         }
         
-        _tabView = view;
+        _tabView = [view retain];
         
         // build buttons from existing tab view items
         for (NSTabViewItem *item in [_tabView tabViewItems]) {
@@ -1100,150 +1175,150 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 #pragma mark Hide/Show Tab Bar Control
 
 - (void)hideTabBar:(BOOL)hide animate:(BOOL)animate {
-
+    
     if ((_isHidden && hide) || (!_isHidden && !hide)) {
-		return;
-	}
+        return;
+    }
     
     _isHidden = hide;
-
+    
     CGFloat partnerOriginalSize, partnerOriginalOrigin, myOriginalSize, myOriginalOrigin, partnerTargetSize, partnerTargetOrigin;
-
-        // target values for partner
-	if ([self orientation] == MMTabBarHorizontalOrientation) {
-            // current (original) values
-		myOriginalSize = [self frame].size.height;
-        #pragma unused(myOriginalSize)
-		myOriginalOrigin = [self frame].origin.y;
-		if (_partnerView) {
-			partnerOriginalSize = [_partnerView frame].size.height;
-			partnerOriginalOrigin = [_partnerView frame].origin.y;
-		} else {
-			partnerOriginalSize = [[self window] frame].size.height;
-			partnerOriginalOrigin = [[self window] frame].origin.y;
-		}
-
-		if (_partnerView) {
-                // above or below me?
-			if ((myOriginalOrigin - kMMTabBarViewHeight) > partnerOriginalOrigin) {
-                    // partner is below me
-				if (_isHidden) {
-                        // I'm shrinking
-					partnerTargetOrigin = partnerOriginalOrigin;
-					partnerTargetSize = partnerOriginalSize + kMMTabBarViewHeight;
-				} else {
-                        // I'm growing
-					partnerTargetOrigin = partnerOriginalOrigin;
-					partnerTargetSize = partnerOriginalSize - kMMTabBarViewHeight;
-				}
-			} else {
-                    // partner is above me
-				if (_isHidden) {
-                        // I'm shrinking
-					partnerTargetOrigin = partnerOriginalOrigin - kMMTabBarViewHeight;
-					partnerTargetSize = partnerOriginalSize + kMMTabBarViewHeight;
-				} else {
-                        // I'm growing
-					partnerTargetOrigin = partnerOriginalOrigin + kMMTabBarViewHeight;
-					partnerTargetSize = partnerOriginalSize - kMMTabBarViewHeight;
-				}
-			}
-		} else {
-                // for window movement
-			if (_isHidden) {
+    
+    // target values for partner
+    if ([self orientation] == MMTabBarHorizontalOrientation) {
+        // current (original) values
+        myOriginalSize = [self frame].size.height;
+#pragma unused(myOriginalSize)
+        myOriginalOrigin = [self frame].origin.y;
+        if (_partnerView) {
+            partnerOriginalSize = [_partnerView frame].size.height;
+            partnerOriginalOrigin = [_partnerView frame].origin.y;
+        } else {
+            partnerOriginalSize = [[self window] frame].size.height;
+            partnerOriginalOrigin = [[self window] frame].origin.y;
+        }
+        
+        if (_partnerView) {
+            // above or below me?
+            if ((myOriginalOrigin - [self heightOfTabBarButtons]) > partnerOriginalOrigin) {
+                // partner is below me
+                if (_isHidden) {
                     // I'm shrinking
-				partnerTargetOrigin = partnerOriginalOrigin + kMMTabBarViewHeight;
-				partnerTargetSize = partnerOriginalSize - kMMTabBarViewHeight;
-			} else {
+                    partnerTargetOrigin = partnerOriginalOrigin;
+                    partnerTargetSize = partnerOriginalSize + [self heightOfTabBarButtons];
+                } else {
                     // I'm growing
-				partnerTargetOrigin = partnerOriginalOrigin - kMMTabBarViewHeight;
-				partnerTargetSize = partnerOriginalSize + kMMTabBarViewHeight;
-			}
-		}
-	} else {   // vertical 
-            // current (original) values
-		myOriginalSize = [self frame].size.width;
-		myOriginalOrigin = [self frame].origin.x;
-		if (_partnerView) {
-			partnerOriginalSize = [_partnerView frame].size.width;
-			partnerOriginalOrigin = [_partnerView frame].origin.x;
-		} else {
-			partnerOriginalSize = [[self window] frame].size.width;
-			partnerOriginalOrigin = [[self window] frame].origin.x;
-		}
-
-		if (_partnerView) {
-                //to the left or right?
-			if (myOriginalOrigin < partnerOriginalOrigin + partnerOriginalSize) {
-                    // partner is to the left
-				if (_isHidden) {
-                        // I'm shrinking
-					partnerTargetOrigin = partnerOriginalOrigin - myOriginalSize;
-					partnerTargetSize = partnerOriginalSize + myOriginalSize;
-					_tabBarWidth = myOriginalSize;
-				} else {
-                        // I'm growing
-					partnerTargetOrigin = partnerOriginalOrigin + _tabBarWidth;
-					partnerTargetSize = partnerOriginalSize - _tabBarWidth;
-				}
-			} else {
-                    // partner is to the right
-				if (_isHidden) {
-                        // I'm shrinking
-					partnerTargetOrigin = partnerOriginalOrigin;
-					partnerTargetSize = partnerOriginalSize + myOriginalSize;
-					_tabBarWidth = myOriginalSize;
-				} else {
-                        // I'm growing
-					partnerTargetOrigin = partnerOriginalOrigin;
-					partnerTargetSize = partnerOriginalSize - _tabBarWidth;
-				}
-			}
-		} else {
-                // for window movement
-			if (_isHidden) {
+                    partnerTargetOrigin = partnerOriginalOrigin;
+                    partnerTargetSize = partnerOriginalSize - [self heightOfTabBarButtons];
+                }
+            } else {
+                // partner is above me
+                if (_isHidden) {
                     // I'm shrinking
-				partnerTargetOrigin = partnerOriginalOrigin + myOriginalSize;
-				partnerTargetSize = partnerOriginalSize - myOriginalSize;
-				_tabBarWidth = myOriginalSize;
-			} else {
+                    partnerTargetOrigin = partnerOriginalOrigin - [self heightOfTabBarButtons];
+                    partnerTargetSize = partnerOriginalSize + [self heightOfTabBarButtons];
+                } else {
                     // I'm growing
-				partnerTargetOrigin = partnerOriginalOrigin - _tabBarWidth;
-				partnerTargetSize = partnerOriginalSize + _tabBarWidth;
-			}
-		}
-	}
-
-	if (hide)
+                    partnerTargetOrigin = partnerOriginalOrigin + [self heightOfTabBarButtons];
+                    partnerTargetSize = partnerOriginalSize - [self heightOfTabBarButtons];
+                }
+            }
+        } else {
+            // for window movement
+            if (_isHidden) {
+                // I'm shrinking
+                partnerTargetOrigin = partnerOriginalOrigin + [self heightOfTabBarButtons];
+                partnerTargetSize = partnerOriginalSize - [self heightOfTabBarButtons];
+            } else {
+                // I'm growing
+                partnerTargetOrigin = partnerOriginalOrigin - [self heightOfTabBarButtons];
+                partnerTargetSize = partnerOriginalSize + [self heightOfTabBarButtons];
+            }
+        }
+    } else {   // vertical
+        // current (original) values
+        myOriginalSize = [self frame].size.width;
+        myOriginalOrigin = [self frame].origin.x;
+        if (_partnerView) {
+            partnerOriginalSize = [_partnerView frame].size.width;
+            partnerOriginalOrigin = [_partnerView frame].origin.x;
+        } else {
+            partnerOriginalSize = [[self window] frame].size.width;
+            partnerOriginalOrigin = [[self window] frame].origin.x;
+        }
+        
+        if (_partnerView) {
+            //to the left or right?
+            if (myOriginalOrigin < partnerOriginalOrigin + partnerOriginalSize) {
+                // partner is to the left
+                if (_isHidden) {
+                    // I'm shrinking
+                    partnerTargetOrigin = partnerOriginalOrigin - myOriginalSize;
+                    partnerTargetSize = partnerOriginalSize + myOriginalSize;
+                    _tabBarWidth = myOriginalSize;
+                } else {
+                    // I'm growing
+                    partnerTargetOrigin = partnerOriginalOrigin + _tabBarWidth;
+                    partnerTargetSize = partnerOriginalSize - _tabBarWidth;
+                }
+            } else {
+                // partner is to the right
+                if (_isHidden) {
+                    // I'm shrinking
+                    partnerTargetOrigin = partnerOriginalOrigin;
+                    partnerTargetSize = partnerOriginalSize + myOriginalSize;
+                    _tabBarWidth = myOriginalSize;
+                } else {
+                    // I'm growing
+                    partnerTargetOrigin = partnerOriginalOrigin;
+                    partnerTargetSize = partnerOriginalSize - _tabBarWidth;
+                }
+            }
+        } else {
+            // for window movement
+            if (_isHidden) {
+                // I'm shrinking
+                partnerTargetOrigin = partnerOriginalOrigin + myOriginalSize;
+                partnerTargetSize = partnerOriginalSize - myOriginalSize;
+                _tabBarWidth = myOriginalSize;
+            } else {
+                // I'm growing
+                partnerTargetOrigin = partnerOriginalOrigin - _tabBarWidth;
+                partnerTargetSize = partnerOriginalSize + _tabBarWidth;
+            }
+        }
+    }
+    
+    if (hide)
         [self setHidden:YES];
+    
+    if (_partnerView) {
+        // resize self and view
+        NSRect resizeRect;
+        if ([self orientation] == MMTabBarHorizontalOrientation) {
+            resizeRect = NSMakeRect([_partnerView frame].origin.x, partnerTargetOrigin, [_partnerView frame].size.width, partnerTargetSize);
+        } else {
+            resizeRect = NSMakeRect(partnerTargetOrigin, [_partnerView frame].origin.y, partnerTargetSize, [_partnerView frame].size.height);
+        }
         
-	if (_partnerView) {
-            // resize self and view
-		NSRect resizeRect;
-		if ([self orientation] == MMTabBarHorizontalOrientation) {
-			resizeRect = NSMakeRect([_partnerView frame].origin.x, partnerTargetOrigin, [_partnerView frame].size.width, partnerTargetSize);
-		} else {
-			resizeRect = NSMakeRect(partnerTargetOrigin, [_partnerView frame].origin.y, partnerTargetSize, [_partnerView frame].size.height);
-		}
-
         if (animate) {
-        
-                // stop running animation
+            
+            // stop running animation
             if (_hideShowTabBarAnimation) {
                 [_hideShowTabBarAnimation stopAnimation];
-                _hideShowTabBarAnimation = nil;
+                [_hideShowTabBarAnimation release], _hideShowTabBarAnimation = nil;
             }
-                
-                // start animated update of partner view
+            
+            // start animated update of partner view
             NSDictionary *partnerAnimDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                _partnerView, NSViewAnimationTargetKey,
-                [NSValue valueWithRect:[_partnerView frame]], NSViewAnimationStartFrameKey,
-                [NSValue valueWithRect:resizeRect], NSViewAnimationEndFrameKey,
-                [NSNumber numberWithBool:hide], @"hide",
-                nil];
-
+                                             _partnerView, NSViewAnimationTargetKey,
+                                             [NSValue valueWithRect:[_partnerView frame]], NSViewAnimationStartFrameKey,
+                                             [NSValue valueWithRect:resizeRect], NSViewAnimationEndFrameKey,
+                                             [NSNumber numberWithBool:hide], @"hide",
+                                             nil];
+            
             NSArray *animDictArray = [NSArray arrayWithObjects:partnerAnimDict,nil];
-                
+            
             _hideShowTabBarAnimation = [[NSViewAnimation alloc] initWithViewAnimations:animDictArray    ];
             [_hideShowTabBarAnimation setDuration:0.1];
             [_hideShowTabBarAnimation setDelegate:self];
@@ -1251,31 +1326,31 @@ static NSMutableDictionary *registeredStyleClasses = nil;
         } else {
             [_partnerView setFrame:resizeRect];
         }
-	} else {
-            // resize self and window
-		NSRect resizeRect;
-		if ([self orientation] == MMTabBarHorizontalOrientation) {
-			resizeRect = NSMakeRect([[self window] frame].origin.x, partnerTargetOrigin, [[self window] frame].size.width, partnerTargetSize);
-		} else {
-			resizeRect = NSMakeRect(partnerTargetOrigin, [[self window] frame].origin.y, partnerTargetSize, [[self window] frame].size.height);
-		}
-		[[self window] setFrame:resizeRect display:YES];
-	}
+    } else {
+        // resize self and window
+        NSRect resizeRect;
+        if ([self orientation] == MMTabBarHorizontalOrientation) {
+            resizeRect = NSMakeRect([[self window] frame].origin.x, partnerTargetOrigin, [[self window] frame].size.width, partnerTargetSize);
+        } else {
+            resizeRect = NSMakeRect(partnerTargetOrigin, [[self window] frame].origin.y, partnerTargetSize, [[self window] frame].size.height);
+        }
+        [[self window] setFrame:resizeRect display:YES];
+    }
     
     
     if (!animate) {
         if (!_isHidden)
             [self setHidden:NO];
         
-            //send the delegate messages
-		if (_isHidden) {
-			if ([_delegate respondsToSelector:@selector(tabView:tabBarViewDidHide:)]) {
-				[_delegate tabView:[self tabView] tabBarViewDidHide:self];
-			}
-		} else {
-			if ([_delegate respondsToSelector:@selector(tabView:tabBarViewDidUnhide:)]) {
-				[_delegate tabView:[self tabView] tabBarViewDidUnhide:self];
-			}
+        //send the delegate messages
+        if (_isHidden) {
+            if ([_delegate respondsToSelector:@selector(tabView:tabBarViewDidHide:)]) {
+                [_delegate tabView:[self tabView] tabBarViewDidHide:self];
+            }
+        } else {
+            if ([_delegate respondsToSelector:@selector(tabView:tabBarViewDidUnhide:)]) {
+                [_delegate tabView:[self tabView] tabBarViewDidUnhide:self];
+            }
         }
     }   
 }
@@ -1421,9 +1496,10 @@ static NSMutableDictionary *registeredStyleClasses = nil;
             }
         
             // update already scheduled? -> do not schedule again
-        if (newState && _needsUpdate)
+        if (_needsUpdate)
             return;
         
+        _needsUpdate = YES;
         [[NSOperationQueue mainQueue] addOperationWithBlock:
             ^{
             [self update];
@@ -1432,6 +1508,12 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 }
 
 - (void)update {
+
+    if (!_needsUpdate) {
+        return;
+    }
+
+    _needsUpdate = NO;
 
     if (![[self window] isVisible] || [self isHidden])
         [self update:NO];
@@ -1508,6 +1590,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
             [NSValue valueWithRect:[self addTabButtonRect]], NSViewAnimationEndFrameKey,
             nil];
             [_slideButtonsAnimation addAnimationDictionary:addButtonAnimDict];
+            [addButtonAnimDict release];
         } else {
             [self _positionAddTabButton];
         }
@@ -1563,18 +1646,12 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 #pragma mark NSDraggingSource
 
 - (NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context {
-    if(context == NSDraggingContextWithinApplication) {
-        return NSDragOperationMove;
-    }
-    
-    return NSDragOperationNone;
+    return NSDragOperationCopy;
 }
 
 - (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal {
 
 	return [[MMTabDragAssistant sharedDragAssistant] draggingSourceOperationMaskForLocal:isLocal ofTabBarView:self];
-    
-	return(isLocal ? NSDragOperationMove : NSDragOperationNone);
 }
 
 - (BOOL)ignoreModifierKeysWhileDragging {
@@ -1637,18 +1714,18 @@ static NSMutableDictionary *registeredStyleClasses = nil;
             //If the user has dragged to a different tab, reset the timer.
 		if (_tabViewItemWithSpring != [destinationButton tabViewItem]) {
 			[_springTimer invalidate];
-			 _springTimer = nil;
+			[_springTimer release]; _springTimer = nil;
 			_tabViewItemWithSpring = [destinationButton tabViewItem];
 		}
 		if (!_springTimer) {
                 //Finder's default delay time, as of Tiger, is 668 ms. If the user has never changed it, there's no setting in its defaults, so we default to that amount.
-			NSNumber *delayNumber = (NSNumber *)CFBridgingRelease(CFPreferencesCopyAppValue((CFStringRef)@"SpringingDelayMilliseconds", (CFStringRef)@"com.apple.finder"));
+			NSNumber *delayNumber = [(NSNumber *)CFPreferencesCopyAppValue((CFStringRef)@"SpringingDelayMilliseconds", (CFStringRef)@"com.apple.finder") autorelease];
 			NSTimeInterval delaySeconds = delayNumber ?[delayNumber doubleValue] / 1000.0 : 0.668;
-			_springTimer = [NSTimer scheduledTimerWithTimeInterval:delaySeconds
+			_springTimer = [[NSTimer scheduledTimerWithTimeInterval:delaySeconds
 							 target:self
 							 selector:@selector(fireSpring:)
 							 userInfo:sender
-							 repeats:NO];
+							 repeats:NO] retain];
 		}
 		return NSDragOperationCopy;    
     }
@@ -1658,7 +1735,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
 - (void)draggingExited:(id <NSDraggingInfo>)sender {
 	[_springTimer invalidate];
-	 _springTimer = nil;
+	[_springTimer release]; _springTimer = nil;
 
 	[[MMTabDragAssistant sharedDragAssistant] draggingExitedTabBarView:self draggingInfo:sender];
 }
@@ -1842,6 +1919,10 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 	return YES;
 }
 
+- (BOOL)acceptsFirstResponder {
+    return NO;
+}
+
 - (void)mouseDown:(NSEvent *)theEvent {
 
 	NSPoint mousePt = [self convertPoint:[theEvent locationInWindow] fromView:nil];
@@ -1871,7 +1952,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
         _tabViewItemWithSpring = nil;
         [_springTimer invalidate];
-         _springTimer = nil;
+        [_springTimer release]; _springTimer = nil;
     }
 }
 
@@ -1934,7 +2015,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 -(void)_finalizeAnimation:(NSAnimation *)animation {
 
     if (animation == _slideButtonsAnimation) {
-        _slideButtonsAnimation = nil;
+        [_slideButtonsAnimation release], _slideButtonsAnimation = nil;
 
         [self _positionAddTabButton];
         
@@ -1950,7 +2031,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
         if (!isHidden)
             [self setHidden:NO];
             
-        _hideShowTabBarAnimation = nil;
+        [_hideShowTabBarAnimation release], _hideShowTabBarAnimation = nil;
         [self updateTrackingAreas];
         
             //send the delegate messages
@@ -2007,7 +2088,6 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 		[aCoder encodeInteger:_buttonOptimumWidth forKey:@"MMbuttonOptimumWidth"];
 		[aCoder encodeBool:_isHidden forKey:@"MMisHidden"];
 		[aCoder encodeObject:_partnerView forKey:@"MMpartnerView"];
-		[aCoder encodeObject:_delegate forKey:@"MMdelegate"];
 		[aCoder encodeBool:_useOverflowMenu forKey:@"MMuseOverflowMenu"];
 		[aCoder encodeBool:_automaticallyAnimates forKey:@"MMautomaticallyAnimates"];
 		[aCoder encodeBool:_alwaysShowActiveTab forKey:@"MMalwaysShowActiveTab"];
@@ -2028,10 +2108,10 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(frameDidChange:) name:NSViewFrameDidChangeNotification object:self];
         
 		if ([aDecoder allowsKeyedCoding]) {
-			_tabView = [aDecoder decodeObjectForKey:@"MMtabView"];
-			_overflowPopUpButton = [aDecoder decodeObjectForKey:@"MMOverflowPopUpButton"];
-			_addTabButton = [aDecoder decodeObjectForKey:@"MMaddTabButton"];
-			_style = [aDecoder decodeObjectForKey:@"MMstyle"];
+			_tabView = [[aDecoder decodeObjectForKey:@"MMtabView"] retain];
+			_overflowPopUpButton = [[aDecoder decodeObjectForKey:@"MMOverflowPopUpButton"] retain];
+			_addTabButton = [[aDecoder decodeObjectForKey:@"MMaddTabButton"] retain];
+			_style = [[aDecoder decodeObjectForKey:@"MMstyle"] retain];
 			_orientation = (MMTabBarOrientation)[aDecoder decodeIntegerForKey:@"MMorientation"];
 			_onlyShowCloseOnHover = [aDecoder decodeBoolForKey:@"MMonlyShowCloseOnHover"];            
 			_canCloseOnlyTab = [aDecoder decodeBoolForKey:@"MMcanCloseOnlyTab"];
@@ -2046,11 +2126,14 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 			_buttonMaxWidth = [aDecoder decodeIntegerForKey:@"MMbuttonMaxWidth"];
 			_buttonOptimumWidth = [aDecoder decodeIntegerForKey:@"MMbuttonOptimumWidth"];
 			_isHidden = [aDecoder decodeBoolForKey:@"MMisHidden"];
-			_partnerView = [aDecoder decodeObjectForKey:@"MMpartnerView"];
+			_partnerView = [[aDecoder decodeObjectForKey:@"MMpartnerView"] retain];
 			_useOverflowMenu = [aDecoder decodeBoolForKey:@"MMuseOverflowMenu"];
 			_automaticallyAnimates = [aDecoder decodeBoolForKey:@"MMautomaticallyAnimates"];
 			_alwaysShowActiveTab = [aDecoder decodeBoolForKey:@"MMalwaysShowActiveTab"];
-			_delegate = [aDecoder decodeObjectForKey:@"MMdelegate"];
+		}
+
+		if (_style == nil) {
+			_style = [[MMMetalTabStyle alloc] init];
 		}
 	}
 
@@ -2136,6 +2219,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 		return;
 	}
 
+	[sender retain];
 
     if (([self delegate]) && ([[self delegate] respondsToSelector:@selector(tabView:shouldCloseTabViewItem:)])) {
         if (![[self delegate] tabView:_tabView shouldCloseTabViewItem:tabViewItem]) {
@@ -2147,12 +2231,15 @@ static NSMutableDictionary *registeredStyleClasses = nil;
          [[self delegate] tabView:_tabView willCloseTabViewItem:tabViewItem];
     }
      
+    [tabViewItem retain];
     [_tabView removeTabViewItem:tabViewItem];
      
     if (([self delegate]) && ([[self delegate] respondsToSelector:@selector(tabView:didCloseTabViewItem:)])) {
          [[self delegate] tabView:_tabView didCloseTabViewItem:tabViewItem];
     }
+    [tabViewItem release];
 
+	[sender release];
 }
 
 - (void)frameDidChange:(NSNotification *)notification {
@@ -2197,10 +2284,11 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 	_buttonMaxWidth = 280;
 	_buttonOptimumWidth = 130;
 	_tearOffStyle = MMTabBarTearOffAlphaWindow;
-	_style = [[MMMetalTabStyle alloc] init];
+	_style = nil;
     _isReorderingTabViewItems = NO;
     _destinationIndexForDraggedItem = NSNotFound;
     _needsUpdate = NO;
+    _resizeTabsToFitTotalWidth = NO;
 
     [self _updateOverflowPopUpButton];
 
@@ -2387,7 +2475,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 		labelRect.origin.y += 4.0;
 		NSMutableAttributedString *attrStr;
 		NSString *contents = @"MMTabBarView";
-		attrStr = [[NSMutableAttributedString alloc] initWithString:contents];
+		attrStr = [[[NSMutableAttributedString alloc] initWithString:contents] autorelease];
 		NSRange range = NSMakeRange(0, [contents length]);
 		[attrStr addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:11.0] range:range];
 		NSMutableParagraphStyle *centeredParagraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
@@ -2396,6 +2484,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 		[attrStr addAttribute:NSParagraphStyleAttributeName value:centeredParagraphStyle range:range];
 		[attrStr drawInRect:labelRect];
         
+        [centeredParagraphStyle release];
 		return;
 	}
 }
@@ -2440,11 +2529,9 @@ static NSMutableDictionary *registeredStyleClasses = nil;
     id <MMTabBarItem> dataSource = nil;
     
     if ([item identifier] &&
-        [[item identifier] conformsToProtocol:@protocol(MMTabBarItem)] &&
         [[item identifier] respondsToSelector:sel]) {
         dataSource = [item identifier];
-    } else if ([item conformsToProtocol:@protocol(MMTabBarItem)] &&
-               [item respondsToSelector:sel]) {
+    } else if ([item respondsToSelector:sel]) {
         dataSource = (id <MMTabBarItem>)item;
     }
     
@@ -2496,7 +2583,7 @@ static NSMutableDictionary *registeredStyleClasses = nil;
 
         // show object count binding
 	[aButton setShowObjectCount:NO];
-    dataSource = [self _dataSourceForSelector:@selector(objectCountColor) withTabViewItem:item];
+    dataSource = [self _dataSourceForSelector:@selector(showObjectCount) withTabViewItem:item];
     if (dataSource)
         [aButton bind:@"showObjectCount" toObject:dataSource withKeyPath:@"showObjectCount" options:nil];
     
@@ -2665,7 +2752,7 @@ StaticImage(AquaTabNewRollover)
 
     if (_addTabButton) {
         [_addTabButton removeFromSuperview];    
-        _addTabButton = nil;
+        [_addTabButton release], _addTabButton = nil;
     }
         // new tab button
 	NSRect addTabButtonRect = [self addTabButtonRect];

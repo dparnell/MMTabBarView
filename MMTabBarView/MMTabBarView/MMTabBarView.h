@@ -15,7 +15,7 @@
 #define MMTabDragDidEndNotification     @"MMTabDragDidEndNotification"
 #define MMTabDragDidBeginNotification   @"MMTabDragDidBeginNotification"
 
-#define kMMTabBarViewHeight             22
+#define kMMTabBarViewHeight             25
 // default inset
 #define MARGIN_X                        6
 #define MARGIN_Y                        3
@@ -96,6 +96,7 @@ typedef enum MMAttachedButtonsEnumerationOptions : NSUInteger {
     MMTabBarTearOffStyle            _tearOffStyle;
     BOOL                            _allowsBackgroundTabClosing;
     BOOL                            _selectsTabsOnMouseDown;
+    BOOL                            _resizeTabsToFitTotalWidth;
 
     // vertical tab resizing
     BOOL                            _allowsResizing;
@@ -132,6 +133,7 @@ typedef enum MMAttachedButtonsEnumerationOptions : NSUInteger {
 @property (assign) NSUInteger destinationIndexForDraggedItem;
 @property (readonly) BOOL isResizing;
 @property (assign) BOOL needsUpdate;
+@property (assign) BOOL resizeTabsToFitTotalWidth;
 
 #pragma mark Control Characteristics
 

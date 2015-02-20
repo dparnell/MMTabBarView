@@ -34,11 +34,15 @@
 - (void) loadImages {
 	// Aqua Tabs Images
 	aquaTabBg = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabsBackground"]];
+
 	aquaTabBgDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabsDown"]];
+
 	aquaTabBgDownGraphite = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabsDownGraphite"]];
+
 	aquaTabBgDownNonKey = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabsDownNonKey"]];
-    
+
 	aquaDividerDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabsSeparatorDown"]];
+
 	aquaDivider = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabsSeparator"]];
 
 	aquaCloseButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front"]];
@@ -51,17 +55,18 @@
 }
 
 - (void)dealloc {
-	aquaTabBg = nil;
-	aquaTabBgDown = nil;
-	aquaDividerDown = nil;
-	aquaDivider = nil;
-	aquaCloseButton = nil;
-	aquaCloseButtonDown = nil;
-	aquaCloseButtonOver = nil;
-	aquaCloseDirtyButton = nil;
-	aquaCloseDirtyButtonDown = nil;
-	aquaCloseDirtyButtonOver = nil;
+	[aquaTabBg release], aquaTabBg = nil;
+	[aquaTabBgDown release], aquaTabBgDown = nil;
+	[aquaDividerDown release], aquaDividerDown = nil;
+	[aquaDivider release], aquaDivider = nil;
+	[aquaCloseButton release], aquaCloseButton = nil;
+	[aquaCloseButtonDown release], aquaCloseButtonDown = nil;
+	[aquaCloseButtonOver release], aquaCloseButtonOver = nil;
+	[aquaCloseDirtyButton release], aquaCloseDirtyButton = nil;
+	[aquaCloseDirtyButtonDown release], aquaCloseDirtyButtonDown = nil;
+	[aquaCloseDirtyButtonOver release], aquaCloseDirtyButtonOver = nil;
 
+	[super dealloc];
 }
 
 #pragma mark -
@@ -112,7 +117,7 @@
 		//Draw for our whole bounds; it'll be automatically clipped to fit the appropriate drawing area
 		rect = [tabBarView bounds];
 
-		[aquaTabBg drawInRect:rect fromRect:NSMakeRect(0.0, 0.0, 1.0, 22.0) operation:NSCompositeSourceOver fraction:1.0 respectFlipped:NO hints:nil];
+		[aquaTabBg drawInRect:rect fromRect:NSMakeRect(0.0, 0.0, 1.0, 22.0) operation:NSCompositeSourceOver fraction:1.0 respectFlipped:YES hints:nil];
 	}
 }
 
@@ -164,7 +169,7 @@
             left = aquaDivider;
         }
 
-        NSDrawThreePartImage(aRect, left, center, right, NO, NSCompositeSourceOver, 1.0f,![controlView isFlipped]);
+        NSDrawThreePartImage(aRect, left, center, right, NO, NSCompositeSourceOver, 1.0f,[controlView isFlipped]);
 
 	} else { // Unselected Tab
 		NSRect aRect = NSMakeRect(cellFrame.origin.x, cellFrame.origin.y, cellFrame.size.width, cellFrame.size.height);
@@ -181,7 +186,7 @@
             left = aquaDivider;
         
         if (![button isOverflowButton]) {
-            NSDrawThreePartImage(aRect, left, center, right, NO, NSCompositeSourceOver, 1.0f,![controlView isFlipped]);
+            NSDrawThreePartImage(aRect, left, center, right, NO, NSCompositeSourceOver, 1.0f,[controlView isFlipped]);
         }
 	}
 }
@@ -234,7 +239,7 @@
             right = aquaDivider;
         }
         
-        NSDrawThreePartImage(aRect, left, center, right, NO, NSCompositeSourceOver, 1.0f,![tabBarView isFlipped]);
+        NSDrawThreePartImage(aRect, left, center, right, NO, NSCompositeSourceOver, 1.0f,[tabBarView isFlipped]);
 
         // Draw unselected
 	} else {
@@ -250,7 +255,7 @@
         if ([tabBarView showAddTabButton])
             right = aquaDivider;
         
-        NSDrawThreePartImage(aRect, left, center, right, NO, NSCompositeSourceOver, 1.0f,![tabBarView isFlipped]);
+        NSDrawThreePartImage(aRect, left, center, right, NO, NSCompositeSourceOver, 1.0f,[tabBarView isFlipped]);
 	}
 }
 
@@ -279,18 +284,18 @@
 	//self = [super initWithCoder:aDecoder];
 	//if (self) {
 	if ([aDecoder allowsKeyedCoding]) {
-		aquaTabBg = [aDecoder decodeObjectForKey:@"aquaTabBg"];
-		aquaTabBgDown = [aDecoder decodeObjectForKey:@"aquaTabBgDown"];
-		aquaTabBgDownGraphite = [aDecoder decodeObjectForKey:@"aquaTabBgDownGraphite"];
-		aquaTabBgDownNonKey = [aDecoder decodeObjectForKey:@"aquaTabBgDownNonKey"];
-		aquaDividerDown = [aDecoder decodeObjectForKey:@"aquaDividerDown"];
-		aquaDivider = [aDecoder decodeObjectForKey:@"aquaDivider"];
-		aquaCloseButton = [aDecoder decodeObjectForKey:@"aquaCloseButton"];
-		aquaCloseButtonDown = [aDecoder decodeObjectForKey:@"aquaCloseButtonDown"];
-		aquaCloseButtonOver = [aDecoder decodeObjectForKey:@"aquaCloseButtonOver"];
-		aquaCloseDirtyButton = [aDecoder decodeObjectForKey:@"aquaCloseDirtyButton"];
-		aquaCloseDirtyButtonDown = [aDecoder decodeObjectForKey:@"aquaCloseDirtyButtonDown"];
-		aquaCloseDirtyButtonOver = [aDecoder decodeObjectForKey:@"aquaCloseDirtyButtonOver"];
+		aquaTabBg = [[aDecoder decodeObjectForKey:@"aquaTabBg"] retain];
+		aquaTabBgDown = [[aDecoder decodeObjectForKey:@"aquaTabBgDown"] retain];
+		aquaTabBgDownGraphite = [[aDecoder decodeObjectForKey:@"aquaTabBgDownGraphite"] retain];
+		aquaTabBgDownNonKey = [[aDecoder decodeObjectForKey:@"aquaTabBgDownNonKey"] retain];
+		aquaDividerDown = [[aDecoder decodeObjectForKey:@"aquaDividerDown"] retain];
+		aquaDivider = [[aDecoder decodeObjectForKey:@"aquaDivider"] retain];
+		aquaCloseButton = [[aDecoder decodeObjectForKey:@"aquaCloseButton"] retain];
+		aquaCloseButtonDown = [[aDecoder decodeObjectForKey:@"aquaCloseButtonDown"] retain];
+		aquaCloseButtonOver = [[aDecoder decodeObjectForKey:@"aquaCloseButtonOver"] retain];
+		aquaCloseDirtyButton = [[aDecoder decodeObjectForKey:@"aquaCloseDirtyButton"] retain];
+		aquaCloseDirtyButtonDown = [[aDecoder decodeObjectForKey:@"aquaCloseDirtyButtonDown"] retain];
+		aquaCloseDirtyButtonOver = [[aDecoder decodeObjectForKey:@"aquaCloseDirtyButtonOver"] retain];
 	}
 	//}
 	return self;
