@@ -206,8 +206,8 @@
 
 - (void)drawBezelOfButton:(MMAttachedTabBarButton *)button atIndex:(NSUInteger)index inButtons:(NSArray *)buttons indexOfSelectedButton:(NSUInteger)selIndex tabBarView:(MMTabBarView *)tabBarView inRect:(NSRect)rect {
     
-    NSWindow *window = [tabBarView window];
-    NSToolbar *toolbar = [window toolbar];
+//    NSWindow *window = [tabBarView window];
+//    NSToolbar *toolbar = [window toolbar];
 //    if (toolbar && [toolbar isVisible])
 //        return;
     
@@ -244,8 +244,8 @@
 {
     MMTabBarView *tabBarView = [controlView enclosingTabBarView];
     MMAttachedTabBarButton *button = (MMAttachedTabBarButton *)controlView;
-    NSWindow *window = [controlView window];
-    NSToolbar *toolbar = [window toolbar];
+//    NSWindow *window = [controlView window];
+//    NSToolbar *toolbar = [window toolbar];
     
     BOOL overflowMode = [button isOverflowButton];
     if ([button isSliding])
@@ -292,8 +292,8 @@
     if ([lastAttachedButton isSliding])
         return;
     
-    NSWindow *window = [tabBarView window];
-    NSToolbar *toolbar = [window toolbar];
+//    NSWindow *window = [tabBarView window];
+//    NSToolbar *toolbar = [window toolbar];
     
     NSRect frame = [overflowButton frame];
     

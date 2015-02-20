@@ -21,6 +21,13 @@
 - (void)_addItemToOverflowMenu:(NSTabViewItem *)anItem withTitle:(NSString *)title;
 @end
 
+@interface MMTabBarView (Private)
+// private actions
+- (void)_overflowMenuAction:(id)sender;
+- (void)_didClickTabButton:(id)sender;
+- (void)_didClickCloseButton:(id)sender;
+@end
+
 @implementation MMTabBarController
 
 /*!

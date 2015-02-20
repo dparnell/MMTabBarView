@@ -804,7 +804,7 @@ static MMTabDragAssistant *sharedDragAssistant = nil;
     _draggedTab = [[MMTabDragWindowController alloc] initWithImage:dragImage styleMask:NSBorderlessWindowMask tearOffStyle:_currentTearOffStyle];
 
     NSPoint location = [aButton frame].origin;
-        
+    
     [tabBarView dragImage:[[NSImage alloc] initWithSize:NSMakeSize(1, 1)] at:location offset:NSZeroSize event:theEvent pasteboard:pboard source:source slideBack:NO];
 }
 
