@@ -54,14 +54,13 @@
 }
 
 - (void)dealloc {
-    [YosemiteCloseButton release], YosemiteCloseButton = nil;
-    [YosemiteCloseButtonDown release], YosemiteCloseButtonDown = nil;
-    [YosemiteCloseButtonOver release], YosemiteCloseButtonOver = nil;
-    [YosemiteCloseDirtyButton release], YosemiteCloseDirtyButton = nil;
-    [YosemiteCloseDirtyButtonDown release], YosemiteCloseDirtyButtonDown = nil;
-    [YosemiteCloseDirtyButtonOver release], YosemiteCloseDirtyButtonOver = nil;
-    [TabNewYosemite release], TabNewYosemite = nil;
-    [super dealloc];
+    YosemiteCloseButton = nil;
+    YosemiteCloseButtonDown = nil;
+    YosemiteCloseButtonOver = nil;
+    YosemiteCloseDirtyButton = nil;
+    YosemiteCloseDirtyButtonDown = nil;
+    YosemiteCloseDirtyButtonOver = nil;
+    TabNewYosemite = nil;
 }
 
 #pragma mark -
@@ -195,7 +194,6 @@
         NSColor *startColor = [NSColor colorWithDeviceWhite:0.8 alpha:1.000];
         NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:startColor endingColor:startColor];
         [gradient drawInRect:gradientRect angle:90.0];
-        [gradient release];
     }
     
     [[NSColor colorWithCalibratedWhite:0.576 alpha:1.0] set];
@@ -345,12 +343,12 @@
     // self = [super initWithCoder:aDecoder];
     //if (self) {
     if ([aDecoder allowsKeyedCoding]) {
-        YosemiteCloseButton = [[aDecoder decodeObjectForKey:@"YosemiteCloseButton"] retain];
-        YosemiteCloseButtonDown = [[aDecoder decodeObjectForKey:@"YosemiteCloseButtonDown"] retain];
-        YosemiteCloseButtonOver = [[aDecoder decodeObjectForKey:@"YosemiteCloseButtonOver"] retain];
-        YosemiteCloseDirtyButton = [[aDecoder decodeObjectForKey:@"YosemiteCloseDirtyButton"] retain];
-        YosemiteCloseDirtyButtonDown = [[aDecoder decodeObjectForKey:@"YosemiteCloseDirtyButtonDown"] retain];
-        YosemiteCloseDirtyButtonOver = [[aDecoder decodeObjectForKey:@"YosemiteCloseDirtyButtonOver"] retain];
+        YosemiteCloseButton = [aDecoder decodeObjectForKey:@"YosemiteCloseButton"];
+        YosemiteCloseButtonDown = [aDecoder decodeObjectForKey:@"YosemiteCloseButtonDown"];
+        YosemiteCloseButtonOver = [aDecoder decodeObjectForKey:@"YosemiteCloseButtonOver"];
+        YosemiteCloseDirtyButton = [aDecoder decodeObjectForKey:@"YosemiteCloseDirtyButton"];
+        YosemiteCloseDirtyButtonDown = [aDecoder decodeObjectForKey:@"YosemiteCloseDirtyButtonDown"];
+        YosemiteCloseDirtyButtonOver = [aDecoder decodeObjectForKey:@"YosemiteCloseDirtyButtonOver"];
     }
     //}
     return self;
@@ -376,12 +374,10 @@
             [[NSGraphicsContext currentContext] setShouldAntialias:NO];
             [gradient drawInBezierPath:fillPath angle:90.0];
             [[NSGraphicsContext currentContext] setShouldAntialias:YES];
-            [gradient release];
         } else {
             NSColor *startColor = [NSColor colorWithDeviceWhite:0.8 alpha:1.000];
             NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:startColor endingColor:startColor];
             [gradient drawInBezierPath:fillPath angle:80.0];
-            [gradient release];
         }
     } else {
         
@@ -392,7 +388,6 @@
             [[NSGraphicsContext currentContext] setShouldAntialias:NO];
             [gradient drawInBezierPath:fillPath angle:90.0];
             [[NSGraphicsContext currentContext] setShouldAntialias:YES];
-            [gradient release];
         }
     }
 

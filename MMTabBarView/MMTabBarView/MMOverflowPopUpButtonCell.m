@@ -38,7 +38,6 @@
 {
     _bezelDrawingBlock = nil;
     _image = nil;
-    _secondImage = nil;
     
 }
 
