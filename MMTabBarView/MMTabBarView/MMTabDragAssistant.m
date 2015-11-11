@@ -806,7 +806,7 @@ static MMTabDragAssistant *sharedDragAssistant = nil;
 //    NSPoint location = [aButton frame].origin;
 //    [tabBarView dragImage:[[NSImage alloc] initWithSize:NSMakeSize(1, 1)] at:location offset:NSZeroSize event:theEvent pasteboard:pboard source:source slideBack:NO];
     
-    [tabBarView beginDraggingSessionWithItems: nil event: theEvent source: tabBarView];
+    [tabBarView beginDraggingSessionWithItems: [NSArray array] event: theEvent source: tabBarView];
 }
 
 - (void)_slideBackTabBarButton:(MMAttachedTabBarButton *)aButton inTabBarView:(MMTabBarView *)tabBarView {
