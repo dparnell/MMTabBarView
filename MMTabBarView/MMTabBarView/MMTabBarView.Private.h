@@ -10,6 +10,11 @@
 
 - (void)_drawInteriorInRect:(NSRect)rect;
 
+// private actions
+- (IBAction)_overflowMenuAction:(id)sender;
+- (IBAction)_didClickTabButton:(id)sender;
+- (IBAction)_didClickCloseButton:(id)sender;
+
 @property (readonly) NSRect _addTabButtonRect;
 @property (readonly) NSRect _overflowButtonRect;
 

@@ -8,6 +8,7 @@
 
 #import "MMTabBarController.h"
 #import "MMTabBarView.h"
+#import "MMTabBarView.private.h"
 #import "MMAttachedTabBarButton.h"
 #import "MMTabStyle.h"
 #import "NSString+MMTabBarViewExtensions.h"

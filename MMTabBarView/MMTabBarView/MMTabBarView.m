@@ -41,11 +41,6 @@
 @property (assign) BOOL isResizing;
 @property (readonly) NSCursor *resizingMouseCursor;
 
-// private actions
-- (IBAction)_overflowMenuAction:(id)sender;
-- (IBAction)_didClickTabButton:(id)sender;
-- (IBAction)_didClickCloseButton:(id)sender;
-
 @end
 
 @implementation MMTabBarView
