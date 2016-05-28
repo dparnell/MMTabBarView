@@ -14,65 +14,24 @@
 #import "NSView+MMTabBarViewExtensions.h"
 #import "NSCell+MMTabBarViewExtensions.h"
 
-@interface MMTabBarButtonCell (/*Private*/)
-
-- (NSImage *)_closeButtonImageOfType:(MMCloseButtonImageType)type;
-
-- (CGFloat)_leftMargin;
-- (CGFloat)_rightMargin;
-
-- (NSRect)_drawingRectForBounds:(NSRect)theRect;
-- (NSRect)_titleRectForBounds:(NSRect)theRect;
-- (NSRect)_iconRectForBounds:(NSRect)theRect;
-- (NSRect)_largeImageRectForBounds:(NSRect)theRect;
-- (NSRect)_indicatorRectForBounds:(NSRect)theRect;
-- (NSSize)_objectCounterSize;
-- (NSRect)_objectCounterRectForBounds:(NSRect)theRect;
-- (NSSize)_closeButtonSizeForBounds:(NSRect)theRect;
-- (NSRect)_closeButtonRectForBounds:(NSRect)theRect;
-
-- (CGFloat)_minimumWidthOfCell;
-- (CGFloat)_desiredWidthOfCell;
-
-- (NSAttributedString *)_attributedStringValue;
-- (NSAttributedString *)_attributedObjectCountStringValue;
-
-- (void)_updateSubButtons;
-- (void)_updateCloseButtonImages;
-- (void)_updateCloseButton;
-- (void)_updateIndicator;
-
-- (void)_drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView;
-- (void)_drawBezelWithFrame:(NSRect)cellFrame inView:(NSView *)controlView;
-- (void)_drawInteriorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView;
-- (void)_drawLargeImageWithFrame:(NSRect)frame inView:(NSView *)controlView;
-- (void)_drawIconWithFrame:(NSRect)frame inView:(NSView *)controlView;
-- (void)_drawTitleWithFrame:(NSRect)frame inView:(NSView *)controlView;
-- (void)_drawObjectCounterWithFrame:(NSRect)frame inView:(NSView *)controlView;
-- (void)_drawIndicatorWithFrame:(NSRect)frame inView:(NSView *)controlView;
-- (void)_drawCloseButtonWithFrame:(NSRect)frame inView:(NSView *)controlView;
-
+@interface MMTabBarButtonCell ()
 @end
 
 @implementation MMTabBarButtonCell
-
-@dynamic style;
-@dynamic hasCloseButton;
-@dynamic suppressCloseButton;
-@synthesize icon = _icon;
-@synthesize largeImage = _largeImage;
-@synthesize showObjectCount = _showObjectCount;
-@synthesize objectCount = _objectCount;
-@synthesize objectCountColor = _objectCountColor;
-@dynamic isEdited;
-@synthesize isProcessing = _isProcessing;
-@synthesize tabState = _tabState;
+{
+    id <MMTabStyle> _style;
+    BOOL            _isProcessing;
+    BOOL            _isEdited;
+    BOOL            _hasCloseButton;
+    BOOL            _suppressCloseButton;
+    BOOL            _closeButtonOver;
+}
 
 + (NSColor *)defaultObjectCountColor {
     return [NSColor colorWithCalibratedWhite:0.3 alpha:0.45];
 }
 
-- (id)init {
+- (instancetype)init {
 	if ((self = [super init])) {
     
         _style = nil;
@@ -90,11 +49,6 @@
 		_closeButtonOver = NO;
 	}
 	return self;
-}
-
-- (void)dealloc {
-    _style = nil;
-         
 }
 
 - (MMTabBarButton *)controlView {
@@ -340,7 +294,7 @@
     MMTabBarView *tabBarView = [self tabBarView];
     id <MMTabStyle> tabStyle = [tabBarView style];
 
-    if ([tabStyle respondsToSelector:@selector(objectCounterSizeOfTabCell:)]) {
+    if ([tabStyle respondsToSelector:@selector(objectCounterSizeForTabCell:)]) {
         return [tabStyle objectCounterSizeOfTabCell:self];
     } else {
         return [self _objectCounterSize];
@@ -387,7 +341,7 @@
 - (CGFloat)minimumWidthOfCell {
 
     id <MMTabStyle> style = [self style];
-    if ([style respondsToSelector:@selector(minimumWidthOfTabCell:)]) {
+    if ([style respondsToSelector:@selector(minimumWidthOfTabCell)]) {
         return [style minimumWidthOfTabCell:self];
     } else {
         return [self _minimumWidthOfCell];
@@ -397,7 +351,7 @@
 - (CGFloat)desiredWidthOfCell {
 
     id <MMTabStyle> style = [self style];
-    if ([style respondsToSelector:@selector(desiredWidthOfTabCell:)]) {
+    if ([style respondsToSelector:@selector(desiredWidthOfTabCell)]) {
         return [style desiredWidthOfTabCell:self];
     } else {    
         return [self _desiredWidthOfCell];
@@ -552,7 +506,7 @@
 	}
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder {
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
 	if ((self = [super initWithCoder:aDecoder])) {
 		if ([aDecoder allowsKeyedCoding]) {
         
@@ -844,7 +798,7 @@
         result.origin.y += (constrainedDrawingRect.size.height - scaledImageSize.height) / 2.0;
     }
         
-    return result;
+    return NSIntegralRect(result);
 }
 
 - (NSRect)_indicatorRectForBounds:(NSRect)theRect {
@@ -860,12 +814,12 @@
     
     NSRect result = NSMakeRect(NSMaxX(drawingRect)-indicatorSize.width,NSMidY(drawingRect)-ceil(indicatorSize.height/2),indicatorSize.width,indicatorSize.height);
     
-    return result;
+    return NSIntegralRect(result);
 }
 
 - (NSSize)_objectCounterSize {
     
-    if ([self showObjectCount] == 0) {
+    if (![self showObjectCount]) {
         return NSZeroSize;
     }
     

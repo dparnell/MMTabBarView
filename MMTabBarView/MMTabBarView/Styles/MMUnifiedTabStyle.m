@@ -12,16 +12,18 @@
 #import "NSView+MMTabBarViewExtensions.h"
 #import "NSBezierPath+MMTabBarViewExtensions.h"
 
-@interface MMUnifiedTabStyle (/*Private*/)
-
-- (void)_drawCardBezelInRect:(NSRect)aRect withCapMask:(MMBezierShapeCapMask)capMask usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView;
-- (void)_drawBoxBezelInRect:(NSRect)aRect withCapMask:(MMBezierShapeCapMask)capMask usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView;
-
+@interface MMUnifiedTabStyle ()
 @end
 
 @implementation MMUnifiedTabStyle
-
-@synthesize leftMarginForTabBarView = _leftMargin;
+{
+	NSImage				*unifiedCloseButton;
+	NSImage				*unifiedCloseButtonDown;
+	NSImage				*unifiedCloseButtonOver;
+	NSImage				*unifiedCloseDirtyButton;
+	NSImage				*unifiedCloseDirtyButtonDown;
+	NSImage				*unifiedCloseDirtyButtonOver;
+}
 
 + (NSString *)name {
     return @"Unified";
@@ -34,7 +36,7 @@
 #pragma mark -
 #pragma mark Creation/Destruction
 
-- (id) init {
+- (instancetype) init {
 	if ((self = [super init])) {
 		unifiedCloseButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front"]];
 		unifiedCloseButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front_Pressed"]];
@@ -44,19 +46,9 @@
 		unifiedCloseDirtyButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabCloseDirty_Front_Pressed"]];
 		unifiedCloseDirtyButtonOver = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabCloseDirty_Front_Rollover"]];
 
-		_leftMargin = 0.0;
+		_leftMarginForTabBarView = 0.0;
 	}
 	return self;
-}
-
-- (void)dealloc {
-	unifiedCloseButton = nil;
-	unifiedCloseButtonDown = nil;
-	unifiedCloseButtonOver = nil;
-	unifiedCloseDirtyButton = nil;
-	unifiedCloseDirtyButtonDown = nil;
-	unifiedCloseDirtyButtonOver = nil;
-
 }
 
 #pragma mark -
@@ -64,14 +56,14 @@
 
 - (CGFloat)leftMarginForTabBarView:(MMTabBarView *)tabBarView {
     if ([tabBarView orientation] == MMTabBarHorizontalOrientation)
-        return _leftMargin;
+        return _leftMarginForTabBarView;
     else
         return 0.0f;
 }
 
 - (CGFloat)rightMarginForTabBarView:(MMTabBarView *)tabBarView {
     if ([tabBarView orientation] == MMTabBarHorizontalOrientation)
-        return _leftMargin;
+        return _leftMarginForTabBarView;
     else
         return 0.0f;
 }
@@ -280,36 +272,6 @@
             [NSBezierPath strokeLineFromPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMinY(aRect)+1.0) toPoint:NSMakePoint(NSMaxX(aRect)+1.5f, NSMaxY(aRect)-1.0)];
         }        
     }
-}
-
-#pragma mark -
-#pragma mark Archiving
-
-- (void)encodeWithCoder:(NSCoder *)aCoder {
-	//[super encodeWithCoder:aCoder];
-	if ([aCoder allowsKeyedCoding]) {
-		[aCoder encodeObject:unifiedCloseButton forKey:@"unifiedCloseButton"];
-		[aCoder encodeObject:unifiedCloseButtonDown forKey:@"unifiedCloseButtonDown"];
-		[aCoder encodeObject:unifiedCloseButtonOver forKey:@"unifiedCloseButtonOver"];
-		[aCoder encodeObject:unifiedCloseDirtyButton forKey:@"unifiedCloseDirtyButton"];
-		[aCoder encodeObject:unifiedCloseDirtyButtonDown forKey:@"unifiedCloseDirtyButtonDown"];
-		[aCoder encodeObject:unifiedCloseDirtyButtonOver forKey:@"unifiedCloseDirtyButtonOver"];
-	}
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder {
-	// self = [super initWithCoder:aDecoder];
-	//if (self) {
-	if ([aDecoder allowsKeyedCoding]) {
-		unifiedCloseButton = [aDecoder decodeObjectForKey:@"unifiedCloseButton"];
-		unifiedCloseButtonDown = [aDecoder decodeObjectForKey:@"unifiedCloseButtonDown"];
-		unifiedCloseButtonOver = [aDecoder decodeObjectForKey:@"unifiedCloseButtonOver"];
-		unifiedCloseDirtyButton = [aDecoder decodeObjectForKey:@"unifiedCloseDirtyButton"];
-		unifiedCloseDirtyButtonDown = [aDecoder decodeObjectForKey:@"unifiedCloseDirtyButtonDown"];
-		unifiedCloseDirtyButtonOver = [aDecoder decodeObjectForKey:@"unifiedCloseDirtyButtonOver"];
-	}
-	//}
-	return self;
 }
 
 #pragma mark -

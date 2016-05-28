@@ -3,7 +3,7 @@
 //  MMTabBarView
 //
 //  Created by Michael Monscheuer on 9/24/12.
-//  Copyright (c) 2012 Michael Monscheuer. All rights reserved.
+//  Copyright (c) 2016 Michael Monscheuer. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
@@ -12,14 +12,7 @@
 
 @class MMImageTransitionAnimation;
 
-@interface MMOverflowPopUpButtonCell : NSPopUpButtonCell <NSAnimationDelegate> {
-
-@private
-    MMCellBezelDrawingBlock _bezelDrawingBlock;
-    NSImage *_image;
-    NSImage *_secondImage;
-    CGFloat _secondImageAlpha;
-}
+@interface MMOverflowPopUpButtonCell : NSPopUpButtonCell <NSAnimationDelegate>
 
 @property (copy) MMCellBezelDrawingBlock bezelDrawingBlock;
 @property (strong) NSImage *image;

@@ -14,21 +14,14 @@
 
 #define MAX_OVERFLOW_MENUITEM_TITLE_LENGTH      60
 
-@interface MMTabBarController (Private)
-- (NSArray *)_generateWidthsFromAttachedButtons:(NSArray *)buttons;
-- (void)_setupAttachedButtons:(NSArray *)buttons withWidths:(NSArray *)widths;
-- (NSInteger)_shrinkWidths:(NSMutableArray *)newWidths towardMinimum:(NSInteger)minimum withAvailableWidth:(CGFloat)availableWidth;
-- (void)_addItemToOverflowMenu:(NSTabViewItem *)anItem withTitle:(NSString *)title;
-@end
-
-@interface MMTabBarView (Private)
-// private actions
-- (void)_overflowMenuAction:(id)sender;
-- (void)_didClickTabButton:(id)sender;
-- (void)_didClickCloseButton:(id)sender;
+@interface MMTabBarController()
 @end
 
 @implementation MMTabBarController
+{
+	__weak MMTabBarView	*_tabBarView;
+	NSMenu *_overflowMenu;
+}
 
 /*!
     @method     initWithTabBarView:
@@ -37,19 +30,11 @@
     @param      A MMTabBarView.
     @returns    A newly created MMTabBarController instance.
  */
-- (id)initWithTabBarView:(MMTabBarView *)aTabBarView {
+- (instancetype)initWithTabBarView:(MMTabBarView *)aTabBarView {
 	if ((self = [super init])) {
 		_tabBarView = aTabBarView;
 	}
 	return self;
-}
-
-- (void)dealloc {
-
-    _tabBarView = nil; // non retained!
-
-    _overflowMenu = nil;
-
 }
 
 /*!
@@ -175,7 +160,7 @@ static NSInteger potentialMinimumForArray(NSArray *array, NSInteger minimum){
 				}
             }
             else if (_tabBarView.resizeTabsToFitTotalWidth) {
-                width = _tabBarView.frame.size.width;
+                width = _tabBarView.frame.size.width / buttonCount;
 			} else {
 				width = [_tabBarView buttonOptimumWidth];
 			}

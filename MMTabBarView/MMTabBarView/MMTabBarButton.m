@@ -26,28 +26,24 @@ NSString *kMMTabBarButtonOberserverContext = @"MMTabBarView.MMTabBarButton.Obser
 
 @implementation MMTabBarButton
 
-@synthesize stackingFrame = _stackingFrame;
-@synthesize closeButton = _closeButton;
-@dynamic closeButtonAction;
-@synthesize indicator = _indicator;
-
-+ (void)initialize {
-    [super initialize];
-    
-    [self exposeBinding:@"isProcessing"];
-    [self exposeBinding:@"isEdited"];    
-    [self exposeBinding:@"objectCount"];
-    [self exposeBinding:@"objectCountColor"];
-    [self exposeBinding:@"icon"];
-    [self exposeBinding:@"largeImage"];
-    [self exposeBinding:@"hasCloseButton"];
++ (void)initialize
+{
+    if (self == [MMTabBarButton class]) {
+        [self exposeBinding:@"isProcessing"];
+        [self exposeBinding:@"isEdited"];    
+        [self exposeBinding:@"objectCount"];
+        [self exposeBinding:@"objectCountColor"];
+        [self exposeBinding:@"icon"];
+        [self exposeBinding:@"largeImage"];
+        [self exposeBinding:@"hasCloseButton"];
+    }
 }
 
 + (Class)cellClass {
     return [MMTabBarButtonCell class];
 }
 
-- (id)initWithFrame:(NSRect)frame {
+- (instancetype)initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
         [self _commonInit];
@@ -55,7 +51,6 @@ NSString *kMMTabBarButtonOberserverContext = @"MMTabBarView.MMTabBarButton.Obser
     
     return self;
 }
-
 
 - (MMTabBarButtonCell *)cell {
     return (MMTabBarButtonCell *)[super cell];

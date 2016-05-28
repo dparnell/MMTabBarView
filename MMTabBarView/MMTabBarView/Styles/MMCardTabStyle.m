@@ -11,25 +11,20 @@
 #import "MMAttachedTabBarButton.h"
 #import "NSView+MMTabBarViewExtensions.h"
 #import "NSBezierPath+MMTabBarViewExtensions.h"
+#import "MMTabBarView.Private.h"
 
-@interface MMTabBarView(SharedPrivates)
-
-- (void)_drawInteriorInRect:(NSRect)rect;
-- (NSRect)_addTabButtonRect;
-- (NSRect)_overflowButtonRect;
-
-@end
-
-@interface MMCardTabStyle (/*Private*/)
-
-- (void)_drawBezelInRect:(NSRect)aRect withCapMask:(MMBezierShapeCapMask)capMask usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView;
-
+@interface MMCardTabStyle ()
 @end
 
 @implementation MMCardTabStyle
-
-@synthesize horizontalInset = _horizontalInset;
-@synthesize topMargin = _topMargin;
+{
+    NSImage *cardCloseButton;
+    NSImage *cardCloseButtonDown;
+    NSImage *cardCloseButtonOver;
+    NSImage *cardCloseDirtyButton;
+    NSImage *cardCloseDirtyButtonDown;
+    NSImage *cardCloseDirtyButtonOver;	    
+}
 
 + (NSString *)name {
     return @"Card";
@@ -42,7 +37,7 @@
 #pragma mark -
 #pragma mark Creation/Destruction
 
-- (id) init {
+- (instancetype) init {
     if ( (self = [super init]) ) {
         cardCloseButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front"]];
         cardCloseButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front_Pressed"]];
@@ -55,16 +50,6 @@
 		_horizontalInset = 3.0;
 	}
     return self;
-}
-
-- (void)dealloc {
-    cardCloseButton = nil;
-    cardCloseButtonDown = nil;
-    cardCloseButtonOver = nil;
-    cardCloseDirtyButton = nil;
-    cardCloseDirtyButtonDown = nil;
-    cardCloseDirtyButtonOver = nil;
-    
 }
 
 #pragma mark -

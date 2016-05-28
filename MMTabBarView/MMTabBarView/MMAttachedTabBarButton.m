@@ -13,21 +13,10 @@
 #import "MMTabStyle.h"
 #import "NSView+MMTabBarViewExtensions.h"
 
-@interface MMAttachedTabBarButton (/*Private*/)
-
-- (MMAttachedTabBarButton *)_selectedAttachedTabBarButton;
-- (NSRect)_draggingRect;
-
+@interface MMAttachedTabBarButton ()
 @end
 
 @implementation MMAttachedTabBarButton
-
-@synthesize tabViewItem = _tabViewItem;
-@dynamic slidingFrame;
-@synthesize isInAnimatedSlide = _isInAnimatedSlide;
-@synthesize isInDraggedSlide = _isInDraggedSlide;
-@dynamic isSliding;
-@dynamic isOverflowButton;
 
 + (void)initialize {
     [super initialize];    
@@ -37,7 +26,7 @@
     return [MMAttachedTabBarButtonCell class];
 }
 
-- (id)initWithFrame:(NSRect)frame tabViewItem:(NSTabViewItem *)anItem {
+- (instancetype)initWithFrame:(NSRect)frame tabViewItem:(NSTabViewItem *)anItem {
 
     self = [super initWithFrame:frame];
     if (self) {
@@ -49,13 +38,12 @@
     return self;
 }
 
-- (id)initWithFrame:(NSRect)frame {
+- (instancetype)initWithFrame:(NSRect)frame {
 
     NSAssert(FALSE,@"please use designated initializer -initWithFrame:tabViewItem:");
 
     return nil;
 }
-
 
 - (void)drawRect:(NSRect)dirtyRect {
     [super drawRect:dirtyRect];
@@ -78,7 +66,7 @@
 }
 
 #pragma mark -
-#pragma mark Accessors
+#pragma mark Properties
 
 - (NSRect)slidingFrame {
     @synchronized(self) {
@@ -189,7 +177,7 @@
 
     NSRect draggingRect = NSZeroRect;
     
-    if (style && [style respondsToSelector:@selector(draggingRectForTabButton:ofTabBarView:)]) {
+    if (style && [style respondsToSelector:@selector(dragRectForTabButton:ofTabBarView:)]) {
         draggingRect = [style draggingRectForTabButton:self ofTabBarView:tabBarView];
     } else {
         draggingRect = [self _draggingRect];
@@ -236,6 +224,26 @@
 
 - (void)slideAnimationDidEnd {
     _isInAnimatedSlide = NO;
+}
+
+#pragma mark -
+#pragma mark NSCoding
+
+- (instancetype)initWithCoder:(NSCoder *)coder {
+
+    self = [super initWithCoder:coder];
+    if (self) {
+        _tabViewItem = nil;
+        _isInAnimatedSlide = NO;
+        _isInDraggedSlide = NO;
+    }
+    
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+    [super encodeWithCoder:aCoder];
 }
 
 #pragma mark -

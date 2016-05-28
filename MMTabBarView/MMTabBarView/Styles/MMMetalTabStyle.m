@@ -12,13 +12,21 @@
 #import "NSView+MMTabBarViewExtensions.h"
 #import "NSBezierPath+MMTabBarViewExtensions.h"
 
-@interface MMMetalTabStyle (/*Private*/)
-
-- (BOOL)_shouldDrawHorizontalTopBorderLineInView:(id)controlView;
+@interface MMMetalTabStyle ()
 
 @end
 
 @implementation MMMetalTabStyle
+{
+	NSImage					*metalCloseButton;
+	NSImage					*metalCloseButtonDown;
+	NSImage					*metalCloseButtonOver;
+	NSImage					*metalCloseDirtyButton;
+	NSImage					*metalCloseDirtyButtonDown;
+	NSImage					*metalCloseDirtyButtonOver;
+
+	NSDictionary			*_objectCountStringAttributes;
+}
 
 StaticImage(TabNewMetal)
 StaticImage(TabNewMetalPressed)
@@ -35,7 +43,7 @@ StaticImage(TabNewMetalRollover)
 #pragma mark -
 #pragma mark Creation/Destruction
 
-- (id) init {
+- (instancetype) init {
 	if ((self = [super init])) {
 		metalCloseButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"TabClose_Front"]];
 		metalCloseButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"TabClose_Front_Pressed"]];
@@ -50,18 +58,6 @@ StaticImage(TabNewMetalRollover)
 										nil, nil];
 	}
 	return self;
-}
-
-- (void)dealloc {
-	metalCloseButton = nil;
-	metalCloseButtonDown = nil;
-	metalCloseButtonOver = nil;
-	metalCloseDirtyButton = nil;
-	metalCloseDirtyButtonDown = nil;
-	metalCloseDirtyButtonOver = nil;
-
-	_objectCountStringAttributes = nil;
-
 }
 
 #pragma mark -
@@ -344,36 +340,6 @@ StaticImage(TabNewMetalRollover)
             }
         }
     }
-}
-
-#pragma mark -
-#pragma mark Archiving
-
-- (void)encodeWithCoder:(NSCoder *)aCoder {
-	//[super encodeWithCoder:aCoder];
-	if ([aCoder allowsKeyedCoding]) {
-		[aCoder encodeObject:metalCloseButton forKey:@"metalCloseButton"];
-		[aCoder encodeObject:metalCloseButtonDown forKey:@"metalCloseButtonDown"];
-		[aCoder encodeObject:metalCloseButtonOver forKey:@"metalCloseButtonOver"];
-		[aCoder encodeObject:metalCloseDirtyButton forKey:@"metalCloseDirtyButton"];
-		[aCoder encodeObject:metalCloseDirtyButtonDown forKey:@"metalCloseDirtyButtonDown"];
-		[aCoder encodeObject:metalCloseDirtyButtonOver forKey:@"metalCloseDirtyButtonOver"];
-	}
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder {
-	// self = [super initWithCoder:aDecoder];
-	//if (self) {
-	if ([aDecoder allowsKeyedCoding]) {
-		metalCloseButton = [aDecoder decodeObjectForKey:@"metalCloseButton"];
-		metalCloseButtonDown = [aDecoder decodeObjectForKey:@"metalCloseButtonDown"];
-		metalCloseButtonOver = [aDecoder decodeObjectForKey:@"metalCloseButtonOver"];
-		metalCloseDirtyButton = [aDecoder decodeObjectForKey:@"metalCloseDirtyButton"];
-		metalCloseDirtyButtonDown = [aDecoder decodeObjectForKey:@"metalCloseDirtyButtonDown"];
-		metalCloseDirtyButtonOver = [aDecoder decodeObjectForKey:@"metalCloseDirtyButtonOver"];
-	}
-	//}
-	return self;
 }
 
 #pragma mark -

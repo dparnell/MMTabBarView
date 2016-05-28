@@ -23,17 +23,11 @@ static NSImage* _static##name##Image() \
     return image; \
 }
 
-@interface MMOverflowPopUpButton (/*Private*/)
+@interface MMOverflowPopUpButton ()
 
 @property (assign) CGFloat secondImageAlpha;
 
-- (BOOL)isAnimating;
-- (void)setIsAnimating:(BOOL)newState;
-
-- (void)_startCellAnimationIfNeeded;
-- (void)_startCellAnimation;
-- (void)_stopCellAnimationIfNeeded;
-- (void)_stopCellAnimation;
+@property (assign) BOOL isAnimating; // pulsating animation of image and second image
 
 @end
 
@@ -48,7 +42,7 @@ StaticImage(overflowImagePressed)
     return [MMOverflowPopUpButtonCell class];
 }
 
-- (id)initWithFrame:(NSRect)frameRect pullsDown:(BOOL)flag {
+- (instancetype)initWithFrame:(NSRect)frameRect pullsDown:(BOOL)flag {
 	if (self = [super initWithFrame:frameRect pullsDown:YES]) {
     
         _isAnimating = NO;
@@ -191,7 +185,7 @@ StaticImage(overflowImagePressed)
 	[super encodeWithCoder:aCoder];
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder {
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
 	if ((self = [super initWithCoder:aDecoder])) {
 	}
 	return self;
@@ -199,14 +193,6 @@ StaticImage(overflowImagePressed)
 
 #pragma mark -
 #pragma mark Private Methods
-
-- (BOOL)isAnimating {
-    return _isAnimating;
-}
-
-- (void)setIsAnimating:(BOOL)newState {
-    _isAnimating = newState;
-}
 
 - (void)_startCellAnimationIfNeeded {
 

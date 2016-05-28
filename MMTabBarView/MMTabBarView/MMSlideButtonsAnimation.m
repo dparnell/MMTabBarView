@@ -12,7 +12,7 @@
 
 @implementation MMSlideButtonsAnimation
 
-- (id)initWithTabBarButtons:(NSSet *)buttons {
+- (instancetype)initWithTabBarButtons:(NSSet *)buttons {
 
     NSArray *viewAnimations = [self _viewAnimationsForButtons:buttons];
 

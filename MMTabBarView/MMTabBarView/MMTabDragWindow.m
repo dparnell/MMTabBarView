@@ -10,12 +10,15 @@
 #import "MMTabDragView.h"
 
 @implementation MMTabDragWindow
+{
+    MMTabDragView *_dragView;
+}
 
-+ (MMTabDragWindow *)dragWindowWithImage:(NSImage *)image styleMask:(NSUInteger)styleMask {
++ (instancetype)dragWindowWithImage:(NSImage *)image styleMask:(NSUInteger)styleMask {
 	return [[MMTabDragWindow alloc] initWithImage:image styleMask:styleMask];
 }
 
-- (id)initWithImage:(NSImage *)image styleMask:(NSUInteger)styleMask {
+- (instancetype)initWithImage:(NSImage *)image styleMask:(NSUInteger)styleMask {
 	NSSize size = [image size];
 
 	if ((self = [super initWithContentRect:NSMakeRect(0, 0, size.width, size.height) styleMask:styleMask backing:NSBackingStoreBuffered defer:NO])) {

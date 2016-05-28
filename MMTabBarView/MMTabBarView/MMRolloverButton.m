@@ -15,7 +15,7 @@
     return [MMRolloverButtonCell class];
 }
 
-- (id)initWithFrame:(NSRect)frameRect {
+- (instancetype)initWithFrame:(NSRect)frameRect {
 
     self = [super initWithFrame:frameRect];
     if (self) {
@@ -87,7 +87,7 @@
     }
         // force reset of mouse hovered state
     if ([self mouseHovered])
-        [[self cell] mouseExited: [NSEvent new]];
+        [[self cell] mouseExited:[NSApp currentEvent]];
 
     // recreate tracking areas and tool tip rects
     
@@ -118,7 +118,7 @@
 	}
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder {
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
 	self = [super initWithCoder:aDecoder];
 	if (self) {
 		if ([aDecoder allowsKeyedCoding]) {

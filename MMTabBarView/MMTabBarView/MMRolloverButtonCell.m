@@ -8,13 +8,13 @@
 #import "MMRolloverButtonCell.h"
 
 @implementation MMRolloverButtonCell
+{
+    MMRolloverButtonType _rolloverButtonType;
+}
 
-@synthesize mouseHovered = _mouseHovered;
-@synthesize rolloverImage = _rolloverImage;
 @dynamic rolloverButtonType;
-@synthesize simulateClickOnMouseHovered = _simulateClickOnMouseHovered;
 
-- (id)init
+- (instancetype)init
 {
     self = [super init];
     if (self) {
@@ -24,7 +24,6 @@
     }
     return self;
 }
-
 
 - (void)drawImage:(NSImage *)image withFrame:(NSRect)frame inView:(NSView *)controlView {
 
@@ -117,7 +116,7 @@
 	}
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder {
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
 	self = [super initWithCoder:aDecoder];
 	if (self) {
 		if ([aDecoder allowsKeyedCoding]) {

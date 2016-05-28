@@ -13,15 +13,20 @@
 #import "NSCell+MMTabBarViewExtensions.h"
 #import "NSBezierPath+MMTabBarViewExtensions.h"
 
-@interface MMLiveChatTabStyle (/*Private*/)
-
-- (void)_drawBezelInRect:(NSRect)aRect withCapMask:(MMBezierShapeCapMask)capMask usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView;
-
+@interface MMLiveChatTabStyle ()
 @end
 
 @implementation MMLiveChatTabStyle
+{
+	NSImage				*liveChatCloseButton;
+	NSImage				*liveChatCloseButtonDown;
+	NSImage				*liveChatCloseButtonOver;
+	NSImage				*liveChatCloseDirtyButton;
+	NSImage				*liveChatCloseDirtyButtonDown;
+	NSImage				*liveChatCloseDirtyButtonOver;
 
-@synthesize leftMarginForTabBarView = _leftMargin;
+	NSDictionary		*_objectCountStringAttributes;
+}
 
 + (NSString *)name {
     return @"LiveChat";
@@ -34,7 +39,7 @@
 #pragma mark -
 #pragma mark Creation/Destruction
 
-- (id) init {
+- (instancetype) init {
 	if ((self = [super init])) {
 		liveChatCloseButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front"]];
 		liveChatCloseButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front_Pressed"]];
@@ -48,21 +53,9 @@
 										[[NSColor whiteColor] colorWithAlphaComponent:0.85], NSForegroundColorAttributeName,
 										[[NSFontManager sharedFontManager] convertFont:[NSFont fontWithName:@"Lucida Grande" size:11.0] toHaveTrait:NSBoldFontMask], NSFontAttributeName,
 										nil];
-		_leftMargin = 5.0;
+		_leftMarginForTabBarView = 5.0;
 	}
 	return self;
-}
-
-- (void)dealloc {
-	liveChatCloseButton = nil;
-	liveChatCloseButtonDown = nil;
-	liveChatCloseButtonOver = nil;
-	liveChatCloseDirtyButton = nil;
-	liveChatCloseDirtyButtonDown = nil;
-	liveChatCloseDirtyButtonOver = nil;
-    
-	_objectCountStringAttributes = nil;
-
 }
 
 #pragma mark -
@@ -70,14 +63,14 @@
 
 - (CGFloat)leftMarginForTabBarView:(MMTabBarView *)tabBarView {
     if ([tabBarView orientation] == MMTabBarHorizontalOrientation)
-        return _leftMargin;
+        return _leftMarginForTabBarView;
     else
         return 0.0;
 }
 
 - (CGFloat)rightMarginForTabBarView:(MMTabBarView *)tabBarView {
     if ([tabBarView orientation] == MMTabBarHorizontalOrientation)
-        return _leftMargin;
+        return _leftMarginForTabBarView;
     else
         return 0.0;
 }
@@ -492,18 +485,6 @@
 - (void)drawBezelInRect:(NSRect)aRect withCapMask:(MMBezierShapeCapMask)capMask usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView {
 
     [self _drawBezelInRect:aRect withCapMask:capMask usingStatesOfAttachedButton:button ofTabBarView:tabBarView];
-}
-
-#pragma mark -
-#pragma mark Archiving
-
-- (void)encodeWithCoder:(NSCoder *)aCoder {
-	// ... do not encode anything
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder {
-	// ... do not read anything
-	return [self init];
 }
 
 #pragma mark -

@@ -13,28 +13,25 @@
 #import "NSView+MMTabBarViewExtensions.h"
 #import "NSCell+MMTabBarViewExtensions.h"
 #import "NSBezierPath+MMTabBarViewExtensions.h"
+#import "MMTabBarButtonCell.Private.h"
 
 // #define Adium_CellPadding 2
 #define Adium_MARGIN_X 4
 #define kMMAdiumCounterPadding 3.0
 
-@interface MMTabBarButtonCell(SharedPrivates)
-
-- (void)_drawIconWithFrame:(NSRect)frame inView:(NSView *)controlView;
-- (void)_drawCloseButtonWithFrame:(NSRect)frame inView:(NSView *)controlView;
-- (void)_drawObjectCounterWithFrame:(NSRect)frame inView:(NSView *)controlView;
-
-@end
-
-@interface MMAdiumTabStyle (/*Private*/)
-
-- (void)_drawBezelInRect:(NSRect)aRect withCapMask:(MMBezierShapeCapMask)capMask usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView applyShadow:(BOOL)applyShadow drawRollovers:(BOOL)drawRollovers;
-
-- (void)_drawBezelWithFrame:(NSRect)frame usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView applyShadow:(BOOL)applyShadow drawRollovers:(BOOL)drawRollovers;
-
+@interface MMAdiumTabStyle ()
 @end
 
 @implementation MMAdiumTabStyle
+{
+	NSImage					*_closeButton;
+	NSImage					*_closeButtonDown;
+	NSImage					*_closeButtonOver;
+	NSImage					*_closeDirtyButton;
+	NSImage					*_closeDirtyButtonDown;
+	NSImage					*_closeDirtyButtonOver;
+	NSImage					*_gradientImage;
+}
 
 + (NSString *)name {
     return @"Adium";
@@ -47,57 +44,13 @@
 #pragma mark -
 #pragma mark Creation/Destruction
 
-- (id)init {
+- (instancetype)init {
 	if ((self = [super init])) {
-		[self loadImages];
+		[self _loadImages];
 		_drawsUnified = NO;
 		_drawsRight = NO;
 	}
 	return self;
-}
-
-- (void)loadImages {
-	_closeButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front"]];
-	_closeButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front_Pressed"]];
-	_closeButtonOver = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front_Rollover"]];
-
-	_closeDirtyButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabCloseDirty_Front"]];
-	_closeDirtyButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabCloseDirty_Front_Pressed"]];
-	_closeDirtyButtonOver = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabCloseDirty_Front_Rollover"]];
-
-	_gradientImage = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AdiumGradient"]];
-}
-
-- (void)dealloc {
-	_closeButton = nil;
-	_closeButtonDown = nil;
-	_closeButtonOver = nil;
-
-	_closeDirtyButton = nil;
-	_closeDirtyButtonDown = nil;
-	_closeDirtyButtonOver = nil;
-
-	_gradientImage = nil;
-
-}
-
-#pragma mark -
-#pragma mark Drawing Style Accessors
-
-- (BOOL)drawsUnified {
-	return _drawsUnified;
-}
-
-- (void)setDrawsUnified:(BOOL)value {
-	_drawsUnified = value;
-}
-
-- (BOOL)drawsRight {
-	return _drawsRight;
-}
-
-- (void)setDrawsRight:(BOOL)value {
-	_drawsRight = value;
 }
 
 #pragma mark -
@@ -626,39 +579,19 @@
 }
 
 #pragma mark -
-#pragma mark Archiving
-
-- (void)encodeWithCoder:(NSCoder *)aCoder {
-	if ([aCoder allowsKeyedCoding]) {
-		[aCoder encodeObject:_closeButton forKey:@"closeButton"];
-		[aCoder encodeObject:_closeButtonDown forKey:@"closeButtonDown"];
-		[aCoder encodeObject:_closeButtonOver forKey:@"closeButtonOver"];
-		[aCoder encodeObject:_closeDirtyButton forKey:@"closeDirtyButton"];
-		[aCoder encodeObject:_closeDirtyButtonDown forKey:@"closeDirtyButtonDown"];
-		[aCoder encodeObject:_closeDirtyButtonOver forKey:@"closeDirtyButtonOver"];
-		[aCoder encodeBool:_drawsUnified forKey:@"drawsUnified"];
-		[aCoder encodeBool:_drawsRight forKey:@"drawsRight"];
-	}
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder {
-	if ((self = [super init])) {
-		if ([aDecoder allowsKeyedCoding]) {
-			_closeButton = [aDecoder decodeObjectForKey:@"closeButton"];
-			_closeButtonDown = [aDecoder decodeObjectForKey:@"closeButtonDown"];
-			_closeButtonOver = [aDecoder decodeObjectForKey:@"closeButtonOver"];
-			_closeDirtyButton = [aDecoder decodeObjectForKey:@"closeDirtyButton"];
-			_closeDirtyButtonDown = [aDecoder decodeObjectForKey:@"closeDirtyButtonDown"];
-			_closeDirtyButtonOver = [aDecoder decodeObjectForKey:@"closeDirtyButtonOver"];
-			_drawsUnified = [aDecoder decodeBoolForKey:@"drawsUnified"];
-			_drawsRight = [aDecoder decodeBoolForKey:@"drawsRight"];
-		}
-	}
-	return self;
-}
-
-#pragma mark -
 #pragma mark Private Methods
+
+- (void)_loadImages {
+	_closeButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front"]];
+	_closeButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front_Pressed"]];
+	_closeButtonOver = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabClose_Front_Rollover"]];
+
+	_closeDirtyButton = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabCloseDirty_Front"]];
+	_closeDirtyButtonDown = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabCloseDirty_Front_Pressed"]];
+	_closeDirtyButtonOver = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AquaTabCloseDirty_Front_Rollover"]];
+
+	_gradientImage = [[NSImage alloc] initByReferencingFile:[[MMTabBarView bundle] pathForImageResource:@"AdiumGradient"]];
+}
 
 - (void)_drawBezelInRect:(NSRect)aRect withCapMask:(MMBezierShapeCapMask)capMask usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView applyShadow:(BOOL)applyShadow drawRollovers:(BOOL)drawRollovers {
 

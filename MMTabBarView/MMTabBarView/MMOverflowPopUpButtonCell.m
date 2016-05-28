@@ -3,26 +3,22 @@
 //  MMTabBarView
 //
 //  Created by Michael Monscheuer on 9/24/12.
-//  Copyright (c) 2012 Michael Monscheuer. All rights reserved.
+//  Copyright (c) 2016 Michael Monscheuer. All rights reserved.
 //
 
 #import "MMOverflowPopUpButtonCell.h"
 #import "NSCell+MMTabBarViewExtensions.h"
 
-@interface MMOverflowPopUpButtonCell (/*Private*/)
-
-- (NSRect)_imageRectForBounds:(NSRect)theRect forImage:(NSImage *)anImage;
+@interface MMOverflowPopUpButtonCell ()
 
 @end
 
 @implementation MMOverflowPopUpButtonCell
+{
+    NSImage *_image;
+}
 
-@dynamic image;
-@synthesize secondImage = _secondImage;
-@synthesize secondImageAlpha = _secondImageAlpha;
-@synthesize bezelDrawingBlock = _bezelDrawingBlock;
-
-- (id)initTextCell:(NSString *)stringValue pullsDown:(BOOL)pullDown {
+- (instancetype)initTextCell:(NSString *)stringValue pullsDown:(BOOL)pullDown {
     self = [super initTextCell:stringValue pullsDown:pullDown];
     if (self) {
         _bezelDrawingBlock = nil;
@@ -32,13 +28,6 @@
     }
 
     return self;
-}
-
-- (void)dealloc
-{
-    _bezelDrawingBlock = nil;
-    _image = nil;
-    
 }
 
 #pragma mark -
@@ -128,7 +117,7 @@
 	}
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder {
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
 	if ((self = [super initWithCoder:aDecoder])) {
 		if ([aDecoder allowsKeyedCoding]) {
         

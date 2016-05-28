@@ -15,13 +15,18 @@
 
 @protocol MMTabStyle;
 
-@interface MMAttachedTabBarButton : MMTabBarButton {
+@interface MMAttachedTabBarButton : MMTabBarButton
 
-@private
-    NSTabViewItem *_tabViewItem;
-    BOOL _isInAnimatedSlide;
-    BOOL _isInDraggedSlide;
-}
+// designated initializer
+- (instancetype)initWithFrame:(NSRect)frame tabViewItem:(NSTabViewItem *)anItem NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithCoder:(NSCoder *)coder NS_DESIGNATED_INITIALIZER;
+
+- (instancetype)initWithFrame:(NSRect)frame NS_UNAVAILABLE;
+
+// overidden accessors (casting)
+@property (strong) MMAttachedTabBarButtonCell *cell;
+
+#pragma mark Properties
 
 @property (strong) NSTabViewItem *tabViewItem;
 @property (assign) NSRect slidingFrame;
@@ -30,17 +35,10 @@
 @property (readonly) BOOL isSliding;
 @property (assign) BOOL isOverflowButton;
 
-// designated initializer
-- (id)initWithFrame:(NSRect)frame tabViewItem:(NSTabViewItem *)anItem;
-
-// overidden accessors (casting)
-- (MMAttachedTabBarButtonCell *)cell;
-- (void)setCell:(MMAttachedTabBarButtonCell *)aCell;
-
 #pragma mark Drag Support
 
-- (NSRect)draggingRect;
-- (NSImage *)dragImage;
+@property (readonly) NSRect draggingRect;
+@property (readonly) NSImage *dragImage;
 
 #pragma mark -
 #pragma mark Animation Support
