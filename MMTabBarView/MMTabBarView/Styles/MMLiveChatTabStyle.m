@@ -456,9 +456,6 @@
 		frame.size.height -= 1.0;
 	}
 
-	NSColor * lineColor = nil;
-	lineColor = [NSColor colorWithCalibratedWhite:0.576 alpha:1.0];
-
 	BOOL drawSelected = [lastAttachedButtonCell state] == NSOnState;
     
 	if (!showsBaselineSeparator || drawSelected) {
@@ -519,13 +516,15 @@
         endColor = [NSColor colorWithCalibratedWhite:0.95 alpha:1.0];
     }
     
-    NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:startColor endingColor:endColor];
-    [gradient drawInBezierPath:fillPath angle:90.0];
+    if(startColor) {
+        NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:startColor endingColor:endColor];
+        [gradient drawInBezierPath:fillPath angle:90.0];
 
-    NSBezierPath *outlinePath = outlinePath = [NSBezierPath bezierPathWithCardInRect:aRect radius:radius capMask:capMask];
-  
-    [lineColor set];
-    [outlinePath stroke];    
+        NSBezierPath *outlinePath = outlinePath = [NSBezierPath bezierPathWithCardInRect:aRect radius:radius capMask:capMask];
+      
+        [lineColor set];
+        [outlinePath stroke];
+    }
 }
 
 @end

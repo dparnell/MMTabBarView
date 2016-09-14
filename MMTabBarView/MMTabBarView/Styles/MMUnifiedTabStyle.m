@@ -317,9 +317,6 @@
 }
 
 - (void)_drawBoxBezelInRect:(NSRect)aRect withCapMask:(MMBezierShapeCapMask)capMask usingStatesOfAttachedButton:(MMAttachedTabBarButton *)button ofTabBarView:(MMTabBarView *)tabBarView {
-
-    capMask &= ~MMBezierShapeFillPath;
-    
         // fill
     if ([button state] == NSOnState) {
         [[NSColor colorWithCalibratedWhite:0.0 alpha:0.2] set];
