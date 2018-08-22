@@ -57,14 +57,6 @@
     [super setCell:aCell];
 }
 
--(void)viewWillDraw {
-
-    NSView *superview = [self superview];    
-    [superview setNeedsDisplayInRect:[superview bounds]];
-
-    [super viewWillDraw];
-}
-
 #pragma mark -
 #pragma mark Properties
 
